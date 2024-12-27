@@ -1,6 +1,6 @@
 //
 //  AppListView.swift
-//  cazhan
+//  dezka
 //
 import SwiftUI
 

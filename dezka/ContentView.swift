@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  cazhan
+//  dezka
 //
 
 import AppKit

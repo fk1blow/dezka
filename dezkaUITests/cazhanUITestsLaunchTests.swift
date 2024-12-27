@@ -1,13 +1,13 @@
 //
-//  cazhanUITestsLaunchTests.swift
-//  cazhanUITests
+//  dezkaUITestsLaunchTests.swift
+//  dezkaUITests
 //
 //  Created by Dragos Tudorache on 22.12.2024.
 //
 
 import XCTest
 
-final class cazhanUITestsLaunchTests: XCTestCase {
+final class dezkaUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

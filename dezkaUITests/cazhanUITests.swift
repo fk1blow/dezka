@@ -1,13 +1,13 @@
 //
-//  cazhanUITests.swift
-//  cazhanUITests
+//  dezkaUITests.swift
+//  dezkaUITests
 //
 //  Created by Dragos Tudorache on 22.12.2024.
 //
 
 import XCTest
 
-final class cazhanUITests: XCTestCase {
+final class dezkaUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

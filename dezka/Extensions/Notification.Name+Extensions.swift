@@ -1,6 +1,6 @@
 //
 //  Notifications+Name.swift
-//  cazhan
+//  dezka
 //
 
 import Foundation
@@ -9,7 +9,7 @@ extension Notification.Name {
   // global stuff(might break it down into more granular commands)
   static let appSearchClear = Notification.Name("AppSearchClear")
 
-  // hide the Cazhan app
+  // hide the app
   static let applicationShouldHide = Notification.Name("ApplicationShouldHide")
   static let applicationWillHide = Notification.Name("ApplicationWillHide")
 

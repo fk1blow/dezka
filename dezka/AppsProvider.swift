@@ -1,6 +1,6 @@
 //
 //  AppsProvider.swift
-//  cazhan
+//  dezka
 //
 
 import AppKit

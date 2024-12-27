@@ -6,9 +6,7 @@ are have windows open on other workspaces(than this current one).
 ```swift
 //
 //  ContentView.swift
-//  cazhan
-//
-//  Created by Dragos Tudorache on 22.12.2024.
+//  dezka
 //
 
 import AppKit
