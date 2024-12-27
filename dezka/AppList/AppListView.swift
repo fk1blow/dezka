@@ -42,6 +42,9 @@ struct AppListView: View {
     .onReceive(NotificationCenter.default.publisher(for: .appListNavigateDown)) { _ in
       navigate(isUpArrow: false)
     }
+    .onReceive(NotificationCenter.default.publisher(for: .applicationWillHide)) { _ in
+      selectedIndex = 0
+    }
     .onReceive(NotificationCenter.default.publisher(for: .appListItemSelect)) { _ in
       if !filteredAppsList.isEmpty {
         switchToApp(filteredAppsList[selectedIndex])
