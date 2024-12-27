@@ -18,21 +18,18 @@ struct AppsListItemView: View {
           .resizable()
           .frame(width: 24, height: 24)
       }
-      VStack(
-        alignment: .center, spacing: 0,
-        content: {
-          Text(getAppName())
-            .font(Font.system(size: 12, weight: .medium))
-            .foregroundStyle(Color(hex: "#F2F2F2"))
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .id(getAppId())
-        })
+      Text(getAppName())
+        .font(Font.system(size: 12, weight: .medium))
+        .foregroundStyle(Color(hex: "#F2F2F2"))
+        .frame(alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
     .frame(maxWidth: .infinity)
     .padding(EdgeInsets(top: 9, leading: 6, bottom: 9, trailing: 6))
     .onHover(perform: { hovering in self.isHovering = hovering })
     .background(itemSelectedStyle())
     .cornerRadius(8)
+    .id(getAppId())
   }
 
   private func isItemSelected() -> Bool {
