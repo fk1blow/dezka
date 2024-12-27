@@ -12,12 +12,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   var hotKey: HotKey?
   var window: NSWindow?
 
+  let notificationCenter = NotificationCenter.default
+
   func applicationDidFinishLaunching(_ notification: Notification) {
+    print("appDidFinishLaunching")
+
     // Create the status bar item
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     if let button = statusItem.button {
       button.image = NSImage(
-        systemSymbolName: "circle.circle", accessibilityDescription: "Menu Icon")
+        systemSymbolName: "circle.circle", accessibilityDescription: "Menu Icon"
+      )
     }
 
     let menu = NSMenu()
@@ -29,6 +34,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     hotKey?.keyDownHandler = {
       self.showWindow()
     }
+
+    // Listen to the notification center
+    notificationCenter.addObserver(self, selector: #selector(onFoo), name: .applicationShouldHide, object: nil)
+  }
+
+  @objc private func onFoo() {
+    NotificationCenter.default.post(name: .applicationWillHide, object: self)
+    window?.close()
+    NSApp.hide(nil)
   }
 
   @objc func quitApp() {
@@ -46,7 +60,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
       window?.contentView = NSHostingView(rootView: contentView)
       window?.isReleasedWhenClosed = false
-//      window?.center()
 
       window?.styleMask.remove(.titled)
       window?.styleMask = [.titled, .fullSizeContentView]
@@ -54,7 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       window?.titleVisibility = .hidden
       window?.titlebarAppearsTransparent = true
       window?.isMovable = false
-      
+
       window?.center()
     }
 
@@ -63,9 +76,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidResignActive(_ notification: Notification) {
-    print("applicationDidResignActivate")
+    NotificationCenter.default.post(name: .applicationWillHide, object: self)
     window?.close()
     NSApp.hide(nil)
-    print("...hide app")
   }
 }

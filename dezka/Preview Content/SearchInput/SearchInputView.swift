@@ -20,6 +20,9 @@ struct SearchInputView: NSViewRepresentable {
       },
       onEnterPressEvent: {
         NotificationCenter.default.post(name: .appListItemSelect, object: self)
+      },
+      onEscPressEvent: {
+        NotificationCenter.default.post(name: .appSearchClear, object: self)
       }
     )
     view.delegate = context.coordinator
@@ -102,14 +105,18 @@ private class RichTextFieldExtended: NSTextView {
   let onArrowUp: (() -> Void)?
   let onArrowDown: (() -> Void)?
   let onEnterPressEvent: (() -> Void)?
+  let onEscPressEvent: (() -> Void)?
 
   init(
-    onArrowDownEvent: (() -> Void)? = nil, onArrowUpEvent: (() -> Void)? = nil,
-    onEnterPressEvent: (() -> Void)? = nil
+    onArrowDownEvent: (() -> Void)? = nil,
+    onArrowUpEvent: (() -> Void)? = nil,
+    onEnterPressEvent: (() -> Void)? = nil,
+    onEscPressEvent: (() -> Void)? = nil
   ) {
     self.onArrowUp = onArrowUpEvent
     self.onArrowDown = onArrowDownEvent
     self.onEnterPressEvent = onEnterPressEvent
+    self.onEscPressEvent = onEscPressEvent
     let textView = NSTextView(frame: .zero)
     super.init(frame: textView.frame, textContainer: textView.textContainer)
   }
@@ -118,11 +125,15 @@ private class RichTextFieldExtended: NSTextView {
     self.onArrowDown = nil
     self.onArrowUp = nil
     self.onEnterPressEvent = nil
+    self.onEscPressEvent = nil
     super.init(coder: coder)
   }
 
   override func keyDown(with event: NSEvent) {
     switch event.keyCode {
+    case 53:
+      onEscPressEvent?()
+      return
     case 36:
       onEnterPressEvent?()
       return

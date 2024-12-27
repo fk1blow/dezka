@@ -38,11 +38,21 @@ struct ContentView: View {
 
         Spacer()
 
-        AppListView()
+        AppListView(searchTerm: $searchTerm)
 
         AppFooterView()
       })
       .background(Color(hex: "#232323"))
+      .onReceive(NotificationCenter.default.publisher(for: .applicationWillHide)) { _ in
+        searchTerm = ""
+      }
+      .onReceive(NotificationCenter.default.publisher(for: .appSearchClear)) { _ in
+        if searchTerm.isEmpty {
+          NotificationCenter.default.post(name: .applicationShouldHide, object: self)
+          return
+        }
+        searchTerm = ""
+      }
     } else {
       VStack(alignment: .center, spacing: 0, content: {
         ZStack(
@@ -67,16 +77,29 @@ struct ContentView: View {
 
         Spacer()
 
-        AppListView()
+        AppListView(searchTerm: $searchTerm)
 
         AppFooterView()
       })
       .padding(EdgeInsets(top: -30, leading: 0, bottom: 0, trailing: 0))
       .background(Color(hex: "#232323"))
+      .onReceive(NotificationCenter.default.publisher(for: .applicationWillHide)) { _ in
+        print("1")
+        searchTerm = ""
+      }
+      .onReceive(NotificationCenter.default.publisher(for: .appSearchClear)) { _ in
+        print("2")
+        if searchTerm.isEmpty {
+          NotificationCenter.default.post(name: .applicationShouldHide, object: self)
+          return
+        }
+        searchTerm = ""
+      }
     }
   }
 }
 
 #Preview {
   ContentView()
+    .frame(width: 600, height: 400)
 }
