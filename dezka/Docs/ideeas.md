@@ -14,6 +14,10 @@ https://contexts.co/
 
 https://hackerific.net/2016/07/20/the-contexts-window-switcher/
 
+## rcmd
+
+https://lowtechguys.com/rcmd/
+
 ## Other
 
 https://noteifyapp.com/quick-tab/#
