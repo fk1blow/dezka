@@ -19,6 +19,7 @@ struct AppsListItemView: View {
           .frame(width: 24, height: 24)
       }
       Text(getAppName())
+        .id(getAppId())
         .font(Font.system(size: 12, weight: .medium))
         .foregroundStyle(Color(hex: "#F2F2F2"))
         .frame(alignment: .leading)
@@ -29,7 +30,6 @@ struct AppsListItemView: View {
     .onHover(perform: { hovering in self.isHovering = hovering })
     .background(itemSelectedStyle())
     .cornerRadius(8)
-    .id(getAppId())
   }
 
   private func isItemSelected() -> Bool {
