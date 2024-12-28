@@ -19,4 +19,8 @@ extension Notification.Name {
   // navigate througn the apps list
   static let appListNavigateUp = Notification.Name("AppListNavigateUp")
   static let appListNavigateDown = Notification.Name("AppListNavigateDown")
+  
+  // toggling between switcher and search modes
+  static let appModeChangeToSearchMode = Notification.Name("AppModeChangeToSearchMode")
+  static let appModeChangeToSwitchMode = Notification.Name("AppModeChangeToSwitchMode")
 }
