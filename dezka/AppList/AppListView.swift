@@ -30,36 +30,30 @@ struct AppListView: View {
           .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
         }
         .padding(EdgeInsets(top: 4, leading: 8, bottom: 6, trailing: 0))
-        .scrollIndicators(.hidden)
         .onChange(of: selectedIndex) { _, newValue in
           proxy.scrollTo(newValue)
         }
       }
     }
+    .onChange(of: searchTerm) { oldValue, newValue in
+      handleSearchTermChange(oldValue: oldValue, newValue: newValue)
+    }
     .onReceive(NotificationCenter.default.publisher(for: .appListNavigateUp)) { _ in
-      navigate(isUpArrow: true)
+      handleNavigate(isUpArrow: true)
     }
     .onReceive(NotificationCenter.default.publisher(for: .appListNavigateDown)) { _ in
-      navigate(isUpArrow: false)
+      handleNavigate(isUpArrow: false)
     }
     .onReceive(NotificationCenter.default.publisher(for: .applicationWillHide)) { _ in
       selectedIndex = 0
     }
     .onReceive(NotificationCenter.default.publisher(for: .appListItemSelect)) { _ in
       if !filteredAppsList.isEmpty {
-        switchToApp(filteredAppsList[selectedIndex])
+        handleSwitchToApp(filteredAppsList[selectedIndex])
       }
     }
     .onAppear {
       fetchRunningApps()
-    }
-  }
-
-  private func navigate(isUpArrow: Bool) {
-    if isUpArrow, selectedIndex > 0 {
-      selectedIndex -= 1
-    } else if !isUpArrow, selectedIndex < filteredAppsList.count - 1 {
-      selectedIndex += 1
     }
   }
 
@@ -70,7 +64,24 @@ struct AppListView: View {
     }
   }
 
-  private func switchToApp(_ app: NSRunningApplication) {
+  private func handleNavigate(isUpArrow: Bool) {
+    if isUpArrow, selectedIndex > 0 {
+      selectedIndex -= 1
+    } else if !isUpArrow, selectedIndex < filteredAppsList.count - 1 {
+      selectedIndex += 1
+    }
+  }
+
+  private func handleSwitchToApp(_ app: NSRunningApplication) {
     app.activate(options: [.activateAllWindows])
+  }
+
+  private func handleSearchTermChange(oldValue: String, newValue: String) {
+    if !oldValue.isEmpty && newValue.isEmpty {
+      selectedIndex = 0
+    }
+    if !newValue.isEmpty && selectedIndex > filteredAppsList.count - 1 {
+      selectedIndex = 0
+    }
   }
 }
