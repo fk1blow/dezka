@@ -6,14 +6,15 @@ import SwiftUI
 
 struct AppListView: View {
   @Binding var searchTerm: String
-  @State private var runningApps: [NSRunningApplication] = []
   @State private var selectedIndex: Int = 0
+
+  @EnvironmentObject private var appDelegate: AppDelegate
 
   private var filteredAppsList: [NSRunningApplication] {
     if searchTerm.isEmpty {
-      return runningApps
+      return appDelegate.runningApps
     }
-    return runningApps.filter {
+    return appDelegate.runningApps.filter {
       $0.localizedName?.lowercased().contains(searchTerm.lowercased()) ?? false
     }
   }
@@ -51,16 +52,6 @@ struct AppListView: View {
       if !filteredAppsList.isEmpty {
         handleSwitchToApp(filteredAppsList[selectedIndex])
       }
-    }
-    .onAppear {
-      fetchRunningApps()
-    }
-  }
-
-  private func fetchRunningApps() {
-    runningApps = NSWorkspace.shared.runningApplications.filter { app in
-      // Include apps with a user interface (and exclude background apps)
-      app.activationPolicy == .regular
     }
   }
 
