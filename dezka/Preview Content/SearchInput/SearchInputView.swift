@@ -10,25 +10,15 @@ import SwiftUI
 struct SearchInputView: NSViewRepresentable {
   @Binding var text: String
 
+  let notificationCenter = NotificationCenter.default
+
   func makeNSView(context: Context) -> NSTextView {
-    let view = RichTextFieldExtended(
-      onArrowDownEvent: {
-        NotificationCenter.default.post(name: .appListNavigateDown, object: self)
-      },
-      onArrowUpEvent: {
-        NotificationCenter.default.post(name: .appListNavigateUp, object: self)
-      },
-      onEnterPressEvent: {
-        NotificationCenter.default.post(name: .appListItemSelect, object: self)
-      },
-      onEscPressEvent: {
-        NotificationCenter.default.post(name: .appSearchClear, object: self)
-      }
-    )
+    let view = RichTextFieldExtended()
     view.delegate = context.coordinator
     view.isRichText = false // Plain text only
     view.isEditable = true
     view.string = text
+    view.isEditable = false
 
     // Set default attributes
     applyDefaultAttributes(to: view)
@@ -37,9 +27,20 @@ struct SearchInputView: NSViewRepresentable {
     view.allowsUndo = true
     view.usesFindPanel = true
 
+    // This search input should be focuse only on demand,
+    // when toggling between "switch" and "search" modes
     DispatchQueue.main.async {
       view.window?.makeFirstResponder(view)
     }
+
+    addViewEventHandlers(to: view)
+
+//    notificationCenter.addObserver(
+//      self,
+//      selector: #selector(context.coordinator.handleAppChangeToSearchMode),
+//      name: .appModeChangeToSearchMode,
+//      object: nil
+//    )
 
     return view
   }
@@ -54,6 +55,24 @@ struct SearchInputView: NSViewRepresentable {
 
   func makeCoordinator() -> Coordinator {
     Coordinator(self)
+  }
+
+  private func addViewEventHandlers(to textView: RichTextFieldExtended) {
+    textView.onArrowDownEvent = {
+      NotificationCenter.default.post(name: .appListNavigateDown, object: self)
+    }
+    textView.onArrowUpEvent = {
+      NotificationCenter.default.post(name: .appListNavigateUp, object: self)
+    }
+    textView.onEnterPressEvent = {
+      NotificationCenter.default.post(name: .appListItemSelect, object: self)
+    }
+    textView.onEscPressEvent = {
+      NotificationCenter.default.post(name: .appSearchClear, object: self)
+    }
+    textView.onSlashPressEvent = {
+      textView.isEditable = true
+    }
   }
 
   private func applyDefaultAttributes(to textView: NSTextView) {
@@ -85,6 +104,10 @@ struct SearchInputView: NSViewRepresentable {
       parent.applyDefaultAttributes(to: textView)
     }
 
+//    @objc func handleAppChangeToSearchMode() {
+//      print("fooooooooo")
+//    }
+
     //    func textViewDidBeginEditing(_ textView: NSTextView) {
     //      if textView.string == "Search..." {
     //        textView.string = "Search..."
@@ -102,35 +125,26 @@ struct SearchInputView: NSViewRepresentable {
 }
 
 private class RichTextFieldExtended: NSTextView {
-  let onArrowUp: (() -> Void)?
-  let onArrowDown: (() -> Void)?
-  let onEnterPressEvent: (() -> Void)?
-  let onEscPressEvent: (() -> Void)?
+  var onArrowUpEvent: (() -> Void)?
+  var onArrowDownEvent: (() -> Void)?
+  var onEnterPressEvent: (() -> Void)?
+  var onEscPressEvent: (() -> Void)?
+  var onSlashPressEvent: (() -> Void)?
 
-  init(
-    onArrowDownEvent: (() -> Void)? = nil,
-    onArrowUpEvent: (() -> Void)? = nil,
-    onEnterPressEvent: (() -> Void)? = nil,
-    onEscPressEvent: (() -> Void)? = nil
-  ) {
-    self.onArrowUp = onArrowUpEvent
-    self.onArrowDown = onArrowDownEvent
-    self.onEnterPressEvent = onEnterPressEvent
-    self.onEscPressEvent = onEscPressEvent
+  init() {
     let textView = NSTextView(frame: .zero)
     super.init(frame: textView.frame, textContainer: textView.textContainer)
   }
 
   required init?(coder: NSCoder) {
-    self.onArrowDown = nil
-    self.onArrowUp = nil
-    self.onEnterPressEvent = nil
-    self.onEscPressEvent = nil
     super.init(coder: coder)
   }
 
   override func keyDown(with event: NSEvent) {
     switch event.keyCode {
+    case 44:
+      onSlashPressEvent?()
+      return
     case 53:
       onEscPressEvent?()
       return
@@ -138,10 +152,10 @@ private class RichTextFieldExtended: NSTextView {
       onEnterPressEvent?()
       return
     case 126:
-      onArrowUp?()
+      onArrowUpEvent?()
       return
     case 125:
-      onArrowDown?()
+      onArrowDownEvent?()
       return
     default:
       super.keyDown(with: event)
