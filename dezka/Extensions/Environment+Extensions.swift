@@ -7,13 +7,13 @@
 
 import SwiftUI
 
-struct AppDelegateKey: EnvironmentKey {
-    static var defaultValue: AppDelegate? = nil
+struct DezkaApplicationKey: EnvironmentKey {
+  static var defaultValue: Dezka? = nil
 }
 
 extension EnvironmentValues {
-    var appDelegate: AppDelegate? {
-        get { self[AppDelegateKey.self] }
-        set { self[AppDelegateKey.self] = newValue }
-    }
+  var dezka: Dezka? {
+    get { self[DezkaApplicationKey.self] }
+    set { self[DezkaApplicationKey.self] = newValue }
+  }
 }
