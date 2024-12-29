@@ -7,15 +7,24 @@ import SwiftUI
 struct AppListView: View {
   @Binding var searchTerm: String
   @State private var selectedIndex: Int = 0
-
-  @EnvironmentObject private var appDelegate: AppDelegate
+  @EnvironmentObject private var dezka: Dezka
 
   private var filteredAppsList: [NSRunningApplication] {
     if searchTerm.isEmpty {
-      return appDelegate.runningApps
+      return dezka.runningApps
     }
-    return appDelegate.runningApps.filter {
-      $0.localizedName?.lowercased().contains(searchTerm.lowercased()) ?? false
+
+    let trimmedSearchTerm = searchTerm.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmedSearchTerm.isEmpty {
+      return dezka.runningApps
+    }
+
+    return dezka.runningApps.filter {
+      $0.localizedName?
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .lowercased()
+        .contains(trimmedSearchTerm.lowercased())
+        ?? false
     }
   }
 
