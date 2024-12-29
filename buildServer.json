@@ -12,8 +12,8 @@
 	"argv": [
 		"/opt/homebrew/bin/xcode-build-server"
 	],
-	"workspace": "/Users/dragostudorache/Playground/cazhan/cazhan.xcodeproj/project.xcworkspace",
-	"build_root": "/Users/dragostudorache/Library/Developer/Xcode/DerivedData/cazhan-budsebdlhyqrtshduglpjgerafrk",
-	"scheme": "cazhan",
+	"workspace": "/Users/dragostudorache/Playground/dezka/dezka.xcodeproj/project.xcworkspace",
+	"build_root": "/Users/dragostudorache/Library/Developer/Xcode/DerivedData/dezka-eiddzmvlyihijrapchgcoywyfcgx",
+	"scheme": "dezka",
 	"kind": "xcode"
 }
