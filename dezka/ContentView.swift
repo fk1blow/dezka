@@ -58,6 +58,10 @@ struct ContentView: View {
 }
 
 #Preview {
+  @Previewable @StateObject var dezkaMain = Dezka()
+
   ContentView()
+    .onAppear { dezkaMain.fetchRunningApps() }
     .frame(width: 600, height: 400)
+    .environmentObject(dezkaMain)
 }

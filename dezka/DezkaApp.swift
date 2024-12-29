@@ -6,24 +6,19 @@
 import HotKey
 import SwiftUI
 
-// @main
-// struct DezkaApp: App {
-//  var body: some Scene {
-//    WindowGroup {
-//      ContentView()
-//    }
-//  }
-// }
-
 @main
 struct DezkaApp: App {
-  // these 2 are the same
-//  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+  private var dezkaMain = Dezka()
   @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+
+  init() {
+    appDelegate.dezkaMain = dezkaMain
+  }
 
   var body: some Scene {
     Settings {
       EmptyView()
     }
+    .environmentObject(dezkaMain)
   }
 }
