@@ -9,28 +9,28 @@ import KeyboardShortcuts
 import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, ObservableObject {
-  @Published var runningApps: [NSRunningApplication] = []
+  @Published var runningAppsMonitor = RunningAppsMonitor()
 
   private var statusItem: NSStatusItem!
   private var window: NSWindow?
 
+  private let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+
   override init() {
     super.init()
-    if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-      fetchRunningApps()
+    if isPreview {
+      // fetchRunningApps()
     }
   }
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
-    createMenu()
+    if !isPreview {
+      createMenu()
+    }
 
-    KeyboardShortcuts.onKeyUp(for: .dezkaHotkey) { [self] in
+    KeyboardShortcuts.onKeyDown(for: .dezkaHotkey) { [self] in
       createWindow()
     }
-  }
-
-  func applicationWillBecomeActive(_ notification: Notification) {
-    fetchRunningApps()
   }
 
   func windowDidResignKey(_ notification: Notification) {
@@ -72,18 +72,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, Observable
     }
 
     let menu = NSMenu()
-    menu.addItem(NSMenuItem(title: "Quit", action: #selector(handleMenuQuitApp), keyEquivalent: "q"))
+    menu.addItem(
+      NSMenuItem(title: "Quit", action: #selector(handleMenuQuitApp), keyEquivalent: "q"))
     statusItem.menu = menu
   }
 
   @objc private func handleMenuQuitApp() {
     NSApplication.shared.terminate(self)
-  }
-
-  private func fetchRunningApps() {
-    runningApps = NSWorkspace.shared.runningApplications.filter { app in
-      // Include apps with a user interface (and exclude background apps)
-      app.activationPolicy == .regular
-    }
   }
 }

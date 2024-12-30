@@ -11,15 +11,15 @@ struct AppListView: View {
 
   private var filteredAppsList: [NSRunningApplication] {
     if searchTerm.isEmpty {
-      return appDelegate.runningApps
+      return appDelegate.runningAppsMonitor.runningApplications
     }
 
     let trimmedSearchTerm = searchTerm.trimmingCharacters(in: .whitespacesAndNewlines)
     if trimmedSearchTerm.isEmpty {
-      return appDelegate.runningApps
+      return appDelegate.runningAppsMonitor.runningApplications
     }
 
-    return appDelegate.runningApps.filter {
+    return appDelegate.runningAppsMonitor.runningApplications.filter {
       $0.localizedName?
         .trimmingCharacters(in: .whitespacesAndNewlines)
         .lowercased()
