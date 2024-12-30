@@ -9,9 +9,16 @@ import SwiftUI
 
 @main
 struct DezkaApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
+  var body: some Scene {
+//    WindowGroup {
+//      SettingsScreen()
+//    }
+    Settings {
+      EmptyView()
+      SettingsScreen()
+        .frame(width: 400, height: 300)
     }
+  }
 }

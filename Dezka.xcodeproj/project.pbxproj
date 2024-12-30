@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2B5D73852D22424C0069FE78 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 2B5D73842D22424C0069FE78 /* KeyboardShortcuts */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		2B5D73642D2241D90069FE78 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B5D73852D22424C0069FE78 /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 				2B5D73542D2241D70069FE78 /* Dezka */,
 				2B5D73662D2241D90069FE78 /* DezkaTests */,
 				2B5D73702D2241D90069FE78 /* DezkaUITests */,
+				2B5D73832D22424C0069FE78 /* Frameworks */,
 				2B5D73532D2241D70069FE78 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +96,13 @@
 				2B5D736D2D2241D90069FE78 /* DezkaUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2B5D73832D22424C0069FE78 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +125,7 @@
 			);
 			name = Dezka;
 			packageProductDependencies = (
+				2B5D73842D22424C0069FE78 /* KeyboardShortcuts */,
 			);
 			productName = Dezka;
 			productReference = 2B5D73522D2241D70069FE78 /* Dezka.app */;
@@ -195,6 +209,9 @@
 			);
 			mainGroup = 2B5D73492D2241D70069FE78;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2B5D73822D2242450069FE78 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2B5D73532D2241D70069FE78 /* Products */;
 			projectDirPath = "";
@@ -401,6 +418,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -428,6 +446,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -549,6 +568,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2B5D73822D2242450069FE78 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2B5D73842D22424C0069FE78 /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2B5D73822D2242450069FE78 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2B5D734A2D2241D70069FE78 /* Project object */;
 }
