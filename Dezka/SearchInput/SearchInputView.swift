@@ -15,7 +15,7 @@ struct SearchInputView: NSViewRepresentable {
   func makeNSView(context: Context) -> NSTextView {
     let view = RichTextFieldExtended()
     view.delegate = context.coordinator
-    view.isRichText = false // Plain text only
+    view.isRichText = false  // Plain text only
     view.isEditable = true
     view.string = text
     view.isEditable = false
@@ -35,12 +35,12 @@ struct SearchInputView: NSViewRepresentable {
 
     addViewEventHandlers(to: view)
 
-//    notificationCenter.addObserver(
-//      self,
-//      selector: #selector(context.coordinator.handleAppChangeToSearchMode),
-//      name: .appModeChangeToSearchMode,
-//      object: nil
-//    )
+    //    notificationCenter.addObserver(
+    //      self,
+    //      selector: #selector(context.coordinator.handleAppChangeToSearchMode),
+    //      name: .appModeChangeToSearchMode,
+    //      object: nil
+    //    )
 
     return view
   }
@@ -86,8 +86,6 @@ struct SearchInputView: NSViewRepresentable {
     )
   }
 
-  // Text View Delegate
-  //
   class Coordinator: NSObject, NSTextViewDelegate {
     var parent: SearchInputView
 
@@ -103,10 +101,6 @@ struct SearchInputView: NSViewRepresentable {
       // Reapply attributes after changes
       parent.applyDefaultAttributes(to: textView)
     }
-
-//    @objc func handleAppChangeToSearchMode() {
-//      print("fooooooooo")
-//    }
 
     //    func textViewDidBeginEditing(_ textView: NSTextView) {
     //      if textView.string == "Search..." {
@@ -162,6 +156,29 @@ private class RichTextFieldExtended: NSTextView {
     }
   }
 
+  // override func flagsChanged(with event: NSEvent) {
+  //   let flags = event.modifierFlags
+  //   let shiftPressed = flags.contains(.shift)
+  //   let controlPressed = flags.contains(.control)
+  //   let optionPressed = flags.contains(.option)
+
+  //   if shiftPressed && controlPressed && optionPressed {
+  //     print("Shift + Control + Option combination detected")
+  //   }
+
+  //   if shiftPressed {
+  //     print("Shift key detected")
+  //   }
+  //   if controlPressed {
+  //     print("Control key detected")
+  //   }
+  //   if optionPressed {
+  //     print("Option key detected")
+  //   }
+
+  //   super.flagsChanged(with: event)  // Forward to superclass
+  // }
+
   override func layout() {
     super.layout()
     if let textContainer = textContainer {
@@ -178,41 +195,41 @@ private class RichTextFieldExtended: NSTextView {
 
   // see https://blog.kulman.sk/making-copy-paste-work-with-nstextfield/
   // about copy/pasting/undo/redo inside the NSTextView
-//  override func performKeyEquivalent(with event: NSEvent) -> Bool {
-//    print("performKeyEquivalent: \(event)")
-//    return true
-//  }
+  //  override func performKeyEquivalent(with event: NSEvent) -> Bool {
+  //    print("performKeyEquivalent: \(event)")
+  //    return true
+  //  }
 
-//  example
-//  final class EditableNSTextField: NSTextField {
-//
-//      private let commandKey = NSEvent.ModifierFlags.command.rawValue
-//      private let commandShiftKey = NSEvent.ModifierFlags.command.rawValue | NSEvent.ModifierFlags.shift.rawValue
-//
-//      override func performKeyEquivalent(with event: NSEvent) -> Bool {
-//          if event.type == NSEvent.EventType.keyDown {
-//              if (event.modifierFlags.rawValue & NSEvent.ModifierFlags.deviceIndependentFlagsMask.rawValue) == commandKey {
-//                  switch event.charactersIgnoringModifiers! {
-//                  case "x":
-//                      if NSApp.sendAction(#selector(NSText.cut(_:)), to: nil, from: self) { return true }
-//                  case "c":
-//                      if NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: self) { return true }
-//                  case "v":
-//                      if NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: self) { return true }
-//                  case "z":
-//                      if NSApp.sendAction(Selector(("undo:")), to: nil, from: self) { return true }
-//                  case "a":
-//                      if NSApp.sendAction(#selector(NSResponder.selectAll(_:)), to: nil, from: self) { return true }
-//                  default:
-//                      break
-//                  }
-//              } else if (event.modifierFlags.rawValue & NSEvent.ModifierFlags.deviceIndependentFlagsMask.rawValue) == commandShiftKey {
-//                  if event.charactersIgnoringModifiers == "Z" {
-//                      if NSApp.sendAction(Selector(("redo:")), to: nil, from: self) { return true }
-//                  }
-//              }
-//          }
-//          return super.performKeyEquivalent(with: event)
-//      }
-//  }
+  //  example
+  //  final class EditableNSTextField: NSTextField {
+  //
+  //      private let commandKey = NSEvent.ModifierFlags.command.rawValue
+  //      private let commandShiftKey = NSEvent.ModifierFlags.command.rawValue | NSEvent.ModifierFlags.shift.rawValue
+  //
+  //      override func performKeyEquivalent(with event: NSEvent) -> Bool {
+  //          if event.type == NSEvent.EventType.keyDown {
+  //              if (event.modifierFlags.rawValue & NSEvent.ModifierFlags.deviceIndependentFlagsMask.rawValue) == commandKey {
+  //                  switch event.charactersIgnoringModifiers! {
+  //                  case "x":
+  //                      if NSApp.sendAction(#selector(NSText.cut(_:)), to: nil, from: self) { return true }
+  //                  case "c":
+  //                      if NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: self) { return true }
+  //                  case "v":
+  //                      if NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: self) { return true }
+  //                  case "z":
+  //                      if NSApp.sendAction(Selector(("undo:")), to: nil, from: self) { return true }
+  //                  case "a":
+  //                      if NSApp.sendAction(#selector(NSResponder.selectAll(_:)), to: nil, from: self) { return true }
+  //                  default:
+  //                      break
+  //                  }
+  //              } else if (event.modifierFlags.rawValue & NSEvent.ModifierFlags.deviceIndependentFlagsMask.rawValue) == commandShiftKey {
+  //                  if event.charactersIgnoringModifiers == "Z" {
+  //                      if NSApp.sendAction(Selector(("redo:")), to: nil, from: self) { return true }
+  //                  }
+  //              }
+  //          }
+  //          return super.performKeyEquivalent(with: event)
+  //      }
+  //  }
 }
