@@ -38,7 +38,7 @@ struct ContentView: View {
 
         AppListView(searchTerm: $searchTerm)
 
-        AppFooterView()
+        // AppFooterView()
       }
     )
     .padding(
