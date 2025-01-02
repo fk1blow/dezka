@@ -79,7 +79,7 @@ struct SearchInputView: NSViewRepresentable {
     // Apply system font attributes to the entire string
     let attributes: [NSAttributedString.Key: Any] = [
       .font: NSFont.systemFont(ofSize: 16, weight: .regular),
-      .foregroundColor: NSColor.white,
+      .foregroundColor: NSColor.white
     ]
     textView.textStorage?.setAttributes(
       attributes, range: NSRange(location: 0, length: textView.string.count)

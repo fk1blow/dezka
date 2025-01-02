@@ -2,70 +2,104 @@
 //  RunningAppsMonitor.swift
 //  Dezka
 //
-//  Created by Dragos Tudorache on 30.12.2024.
-//
 
 import Combine
 import SwiftUI
 
 class RunningAppsMonitor: ObservableObject {
-  @Published var runningApplications: [NSRunningApplication] = []
-
-  private var notificationCenter: NotificationCenter {
-    NSWorkspace.shared.notificationCenter
-  }
+  var appsWithWindows: [NSRunningApplication] = []
 
   init() {
-    updateRunningApplications()
+    updateAppsWithWindows()
 
-    notificationCenter.addObserver(
+    NSWorkspace.shared.notificationCenter.addObserver(
       self,
-      selector: #selector(applicationDidLaunch(_:)),
+      selector: #selector(appDidChange(_:)),
       name: NSWorkspace.didLaunchApplicationNotification,
       object: nil
     )
 
-    notificationCenter.addObserver(
+    NSWorkspace.shared.notificationCenter.addObserver(
       self,
-      selector: #selector(applicationDidTerminate(_:)),
+      selector: #selector(appDidChange(_:)),
       name: NSWorkspace.didTerminateApplicationNotification,
       object: nil
     )
-  }
 
-  @objc private func applicationDidLaunch(_ notification: Notification) {
-    guard
-      let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-    else {
-      return
+    NSWorkspace.shared.notificationCenter.addObserver(
+      forName: NSWorkspace.didActivateApplicationNotification,
+      object: nil,
+      queue: .main
+    ) { notification in
+      if let userInfo = notification.userInfo,
+         let activatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+      {
+        print("activated app: \(activatedApp.localizedName ?? "Unknown App")")
+      }
     }
 
-    if app.activationPolicy == .regular {
-      DispatchQueue.main.async {
-        self.runningApplications.append(app)
+    NSWorkspace.shared.notificationCenter.addObserver(
+      forName: NSWorkspace.didDeactivateApplicationNotification,
+      object: nil,
+      queue: .main
+    ) { notification in
+      if let userInfo = notification.userInfo,
+         let deactivatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+      {
+        print("deactivated app: \(deactivatedApp.localizedName ?? "Unknown App")")
       }
     }
   }
 
-  @objc private func applicationDidTerminate(_ notification: Notification) {
-    guard
-      let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-    else {
-      return
-    }
+  @objc private func appDidChange(_: Notification) {
+    updateAppsWithWindows()
+  }
 
-    DispatchQueue.main.async {
-      self.runningApplications.removeAll { $0.processIdentifier == app.processIdentifier }
+  func getAppsWithWindows() -> [NSRunningApplication] {
+    let runningApps = NSWorkspace.shared.runningApplications
+    print("runningApps: \(runningApps.count)")
+
+    return runningApps.filter { app in
+      guard !app.isHidden, app.activationPolicy == .regular else {
+        return false // Exclude hidden/system apps
+      }
+      // This currently fails on runtime, so disregar it for now
+      // return hasWindows(runningApp: app)
+      return true
     }
   }
 
-  private func updateRunningApplications() {
-    runningApplications = NSWorkspace.shared.runningApplications.filter {
-      $0.activationPolicy == .regular
+  func hasWindows(runningApp: NSRunningApplication) -> Bool {
+    guard
+      let appElement = AXUIElementCreateApplication(runningApp.processIdentifier) as AXUIElement?
+    else {
+      return false
     }
+
+    var value: AnyObject?
+    let result = AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &value)
+
+    if result != .success {
+      print(
+        "Failed to fetch windows for app \(runningApp.bundleIdentifier ?? "Unknown"). Error code: \(result.rawValue)"
+      )
+      return false
+    }
+
+    if let windows = value as? [AXUIElement], !windows.isEmpty {
+      return true
+    }
+
+    return false
+  }
+
+  func updateAppsWithWindows() {
+    appsWithWindows = getAppsWithWindows()
+    // print("Updated apps with windows: \(appsWithWindows.map { $0.bundleIdentifier ?? "Unknown" })")
+    print(appsWithWindows.count)
   }
 
   deinit {
-    notificationCenter.removeObserver(self)
+    // notificationCenter.removeObserver(self)
   }
 }

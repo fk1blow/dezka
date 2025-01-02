@@ -17,8 +17,8 @@ struct DezkaApp: App {
 //    }
     Settings {
       EmptyView()
-      SettingsScreen()
-        .frame(width: 400, height: 300)
+//      SettingsScreen()
+//        .frame(width: 400, height: 300)
     }
   }
 }
