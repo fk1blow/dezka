@@ -15,10 +15,7 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
   private let activationKeyMonitor = ActivationKeyMonitor()
   private let appNavigator = AppNavigator()
   private let activationTransitionMonitor = ActivationTransitionMonitor()
-
-  private var cycleStateMachine = AppSwitcherCycleStateMachine()
-
-  private var selectedApp: NSRunningApplication?
+  private let cycleStateMachine = AppSwitcherCycleStateMachine()
 
   init() {
     activationKeyMonitor.delegate = self
@@ -60,6 +57,8 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
       cycleStateMachine.next()
     case .cycling:
       appNavigator.navigateToNext()
+    case .activating:
+      break
     }
   }
 
@@ -113,12 +112,8 @@ enum AppSwitcherCycleState {
 class AppSwitcherCycleStateMachine {
   private(set) var state: AppSwitcherCycleState = .inactive {
     didSet {
-      print("# new state: \(state)")
+      // print("# new state: \(state)")
     }
-  }
-
-  init() {
-    print("# initial state: \(state)")
   }
 
   func goToCyclingState() {
