@@ -1,5 +1,5 @@
 <h1 align="center">
-	<img src="./icons/icon-512.png" width="100" alt="Logo"/><br/>
+	<img src="./icons/Icon-512.png" width="128" alt="Logo"/><br/>
 	Loungy
 </h1>
 
