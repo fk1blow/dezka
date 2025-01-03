@@ -34,7 +34,7 @@ struct AppsListItemView: View {
 //            .frame(width: 20, height: 20)
 //        )
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-      
+
       Spacer()
     }
     .frame(maxWidth: .infinity)

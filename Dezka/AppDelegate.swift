@@ -5,59 +5,74 @@
 //  Created by Dragos Tudorache on 30.12.2024.
 //
 
+import Cocoa
 import KeyboardShortcuts
 import SwiftUI
 
-class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, ObservableObject,
-  SwitcherActivationMonitorDelegate
-{
-  @Published var runningAppsMonitor = RunningAppsMonitor()
-
+class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, ObservableObject, AppSwitcherDelegate {
   private var statusItem: NSStatusItem!
   private var window: NSWindow?
-
   private let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-  private let switcherActivationMonitor = SwitcherActivationMonitor()
+  private let appSwitcher = AppSwitcher()
 
   override init() {
     super.init()
-    switcherActivationMonitor.delegate = self
+    appSwitcher.delegate = self
   }
 
-  func applicationDidFinishLaunching(_ aNotification: Notification) {
+  func applicationDidFinishLaunching(_: Notification) {
     if !isPreview {
       createMenu()
     }
 
     KeyboardShortcuts.onKeyDown(for: .dezkaHotkey) { [self] in
-      print("Hotkey pressed")
-      createWindow()
-      KeyboardShortcuts.disable(.dezkaHotkey)
-      switcherActivationMonitor.startMonitor()
+      print("Dezka onKeyDown")
+
+      appSwitcher.switchToNextApp()
+
+      // NSApp.activate(ignoringOtherApps: true)
+
+      // createWindow()
     }
   }
 
-  func windowDidResignKey(_ notification: Notification) {
-    hideApp()
-    KeyboardShortcuts.enable(.dezkaHotkey)
-    switcherActivationMonitor.stopMonitor()
+  func appSwitcherDidFinish() {
+    // NSApp.deactivate()
+    // KeyboardShortcuts.enable(.dezkaHotkey)
+    // appSwitcher.disable()
+    print("_____________________________")
   }
 
-  func switcherActivationDidEnd() {
+  func windowDidResignKey(_: Notification) {
+    print("windowDidResignKey")
     hideApp()
-    NotificationCenter.default.post(name: .appListItemSelect, object: nil)
     KeyboardShortcuts.enable(.dezkaHotkey)
-    switcherActivationMonitor.stopMonitor()
+    // appSwitcher.disable()
+//    switcherActivationMonitor.stopMonitor()
+    // This should first check if the switcher is still active
+    // b/c it might trigger before the `switcherActivationDidEnd`
+    // appListManager.navigateToFirst()
   }
 
-  func switcherNavigationDidTrigger(to direction: SwitcherNavigationDirection) {
-    switch direction {
-    case .next:
-      NotificationCenter.default.post(name: .appListNavigateDown, object: nil)
-    case .previous:
-      NotificationCenter.default.post(name: .appListNavigateUp, object: nil)
-    }
-  }
+//   func switcherActivationDidEnd() {
+//     print("switcherActivationDidEnd")
+//     hideApp()
+//     // NotificationCenter.default.post(name: .appListItemSelect, object: nil)
+//     // appSwitcher.disable()
+  // //    appListManager.switchFocusToSelected()
+//     // KeyboardShortcuts.enable(.dezkaHotkey)
+//   }
+
+//  func switcherNavigationDidTrigger(to direction: SwitcherNavigationDirection) {
+//    switch direction {
+//    case .next:
+//      appListManager.navigateTo(direction: .next)
+//    // NotificationCenter.default.post(name: .appListNavigateDown, object: nil)
+//    case .previous:
+//      appListManager.navigateTo(direction: .previous)
+//      // NotificationCenter.default.post(name: .appListNavigateUp, object: nil)
+//    }
+//  }
 
   @objc private func handleMenuQuitApp() {
     NSApplication.shared.terminate(self)
@@ -70,9 +85,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, Observable
     // NSApp.hide(nil)
   }
 
+  // split this into : activateWindow and activateApp
   private func createWindow() {
     if window == nil {
-      let contentView = ContentView().environmentObject(self)
+      // let contentView = ContentView().environmentObject(self)
+//      let contentView = ContentView().environmentObject(appListManager)
+      let contentView = ContentView()
 
       window = NSWindow(
         contentRect: NSRect(x: 0, y: 0, width: 500, height: 450),
