@@ -48,8 +48,6 @@ class AppNavigator {
 
     if appCanBeSelected(app: targetApp) {
       targetApp.activate(options: [.activateIgnoringOtherApps])
-    } else {
-      print("App cannot be selected!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     }
 
     resetNavigationIndex()
@@ -57,8 +55,6 @@ class AppNavigator {
 
   func appCanBeSelected(app: NSRunningApplication) -> Bool {
     let frontmostApp = NSWorkspace.shared.frontmostApplication
-    print("frontmostApp: \(frontmostApp?.localizedName ?? "Unknown App")")
-    print("app: \(app.localizedName ?? "Unknown App")")
 
     if frontmostApp?.processIdentifier == app.processIdentifier {
       return false
