@@ -32,7 +32,6 @@ class AppNavigator {
   func activateSelectedApp() {
     guard appListManager.appList.indices.contains(navigationAtIndex) else { return }
     let targetApp = appListManager.appList[navigationAtIndex]
-
     targetApp.activate(options: [.activateIgnoringOtherApps])
 
     resetNavigationStart()
@@ -40,16 +39,6 @@ class AppNavigator {
 
   private func resetNavigationStart() {
     navigationAtIndex = 0
-  }
-
-  private func appCanBeSelected(app: NSRunningApplication) -> Bool {
-    let frontmostApp = NSWorkspace.shared.frontmostApplication
-
-    if frontmostApp?.processIdentifier == app.processIdentifier {
-      return false
-    }
-
-    return true
   }
 }
 
