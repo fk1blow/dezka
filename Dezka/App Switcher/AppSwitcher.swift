@@ -27,9 +27,14 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
 
   func switchToNextApp() {
     // If the state is .activating, this means another factor(eg: mouse cliking on an app)
-    // prevented the app switcher from finishing the cycle. While an edge case, this should be
-    // handled and the state should be reset to `.inactive`
+    // prevented the app switcher from finishing the activation.
+    // This causes the app switcher to be stuck in the '.activating' state and unable to switch
+    // to the next app, until some other event triggers the app switcher to move to the next state.
     if cycleStateMachine.state == .activating {
+      // notsure if this is the right way to handle this
+      // but for now...
+      activationKeyMonitor.disable()
+
       activationTransitionMonitor.enable()
       activationKeyMonitor.enable()
 
@@ -49,45 +54,43 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
 
     switch cycleStateMachine.state {
     case .inactive:
-      print("inactive --->")
-
       activationTransitionMonitor.enable()
       activationKeyMonitor.enable()
       appNavigator.navigateToNext()
       cycleStateMachine.next()
     case .cycling:
-      print("cycling --->")
       appNavigator.navigateToNext()
-    case .activating:
-      print("waiting --->")
-    // keyboardMonitor.stopMonitoring()
-    // appNavigator.getSelectedApp()?.activate(options: [.activateAllWindows])
-    // cycleStateMachine.next()
     }
   }
 
   func didReleaseActivationKey() {
     guard cycleStateMachine.state == .cycling else { return }
 
-    print("didReleaseActivationKey")
-
     appNavigator.activateSelectedApp()
 
+    // disable all monitors
     activationTransitionMonitor.disable()
-
     activationKeyMonitor.disable()
 
+    // this should implicitly go to the `.activating` state
     cycleStateMachine.next()
   }
 
   func didActivateAppOnSameSpace(app: NSRunningApplication) {
-    // guard cycleStateMachine.state == .activating else { return }
-
-    // if cycleStateMachine.state == .cycling {
-
-    // }
-
-    print("didActivateAppOnSameSpace: \(app.localizedName ?? "Unknown App")")
+    // This happens when the app switcher is in the process of navigating to the next app
+    // but an external factor(eg: mouse clicking and holding on an app) causes the app switcher
+    // to be stuck in the `.activating` state.
+    // In this case, the app switcher can simply assume that the app has been activated
+    // and move to the inactive state.
+    if cycleStateMachine.state == .cycling {
+      cycleStateMachine.goToInactiveState()
+      // disable every monitor
+      activationTransitionMonitor.disable()
+      activationKeyMonitor.disable()
+      // reset the navigation
+      appNavigator.resetNavigation()
+      return
+    }
 
     guard cycleStateMachine.state == .activating else { return }
 
@@ -96,8 +99,6 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
 
   func didFinishSpaceTransitionFor(app: NSRunningApplication) {
     guard cycleStateMachine.state == .activating else { return }
-
-    print("didFinishSpaceTransitionFor: \(app.localizedName ?? "Unknown App")")
 
     cycleStateMachine.next()
   }
@@ -122,6 +123,10 @@ class AppSwitcherCycleStateMachine {
 
   func goToCyclingState() {
     state = .cycling
+  }
+
+  func goToInactiveState() {
+    state = .inactive
   }
 
   func next() {
