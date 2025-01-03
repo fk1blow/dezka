@@ -34,6 +34,10 @@ class AppNavigator {
     navigationAtIndex -= 1
   }
 
+  func resetNavigation() {
+    resetNavigationIndex()
+  }
+
   private func resetNavigationIndex() {
     navigationAtIndex = 0
   }

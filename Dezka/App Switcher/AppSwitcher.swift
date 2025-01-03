@@ -26,6 +26,23 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
   }
 
   func switchToNextApp() {
+    // If the state is .activating, this means another factor(eg: mouse cliking on an app)
+    // prevented the app switcher from finishing the cycle. While an edge case, this should be
+    // handled and the state should be reset to `.inactive`
+    if cycleStateMachine.state == .activating {
+      activationTransitionMonitor.enable()
+      activationKeyMonitor.enable()
+
+      // want to start from the beginning
+      // and continue just like it would in the `.inactive` state
+      appNavigator.resetNavigation()
+      appNavigator.navigateToNext()
+
+      cycleStateMachine.goToCyclingState()
+
+      return
+    }
+
     guard cycleStateMachine.state == .inactive || cycleStateMachine.state == .cycling else {
       return
     }
@@ -101,6 +118,10 @@ class AppSwitcherCycleStateMachine {
 
   init() {
     print("# initial state: \(state)")
+  }
+
+  func goToCyclingState() {
+    state = .cycling
   }
 
   func next() {
