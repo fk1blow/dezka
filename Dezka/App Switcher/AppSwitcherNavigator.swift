@@ -3,32 +3,42 @@
 //  Dezka
 //
 
+import Cocoa
 import Combine
 import SwiftUI
 
-protocol AppSwitcherNavigatorDelegate: AnyObject {
-  //
+protocol AppListNavigatorDelegate: AnyObject {
+  func navigatorDidActivateSelectedApp(app: NSRunningApplication)
 }
 
-class AppSwitcherNavigator {
-  private let appSwitcherListManager = AppSwitcherListManager()
+class AppListNavigator: AppListManagerDelegate {
+  weak var delegate: AppListNavigatorDelegate?
+
+  private let apListManager = AppListListManager()
+
   private var navigationAtIndex: Int = 0 {
     didSet {
-      // print("navigationAtIndex: \(navigationAtIndex)")
-      let wouldBeApp = appSwitcherListManager.appList[navigationAtIndex]
+      let wouldBeApp = apListManager.appList[navigationAtIndex]
       // print("wouldBeApp: \(wouldBeApp.localizedName ?? "Unknown App")")
     }
   }
 
+  init() {
+    apListManager.delegate = self
+
+    let foo = FooSwitcher()
+  }
+
   func navigateToNext() {
-    guard navigationAtIndex < appSwitcherListManager.appList.count - 1 else { return }
-    // print("navigateToNext")
+    guard navigationAtIndex < apListManager.appList.count - 1 else { return }
     navigationAtIndex += 1
+
+    let wouldBeApp = apListManager.appList[navigationAtIndex]
+    print("wouldBeApp: \(wouldBeApp.localizedName ?? "Unknown App")")
   }
 
   func navigaToPrevious() {
     guard navigationAtIndex > 0 else { return }
-    // print("navigaToPrevious")
     navigationAtIndex -= 1
   }
 
@@ -36,22 +46,39 @@ class AppSwitcherNavigator {
     navigationAtIndex = 0
   }
 
-  func getSelectedApp() -> NSRunningApplication? {
-    guard appSwitcherListManager.appList.indices.contains(navigationAtIndex) else { return nil }
-    return appSwitcherListManager.appList[navigationAtIndex]
+  // func getSelectedApp() -> NSRunningApplication? {
+  //   guard appSwitcherListManager.appList.indices.contains(navigationAtIndex) else { return nil }
+  //   return appSwitcherListManager.appList[navigationAtIndex]
+  // }
+
+  func activateSelectedApp() {
+    guard apListManager.appList.indices.contains(navigationAtIndex) else { return }
+    let app = apListManager.appList[navigationAtIndex]
+    app.activate(options: [.activateAllWindows])
+
+    navigateToFirst()
+  }
+
+  func switcherListDidActivatedApp(app: NSRunningApplication) {
+    delegate?.navigatorDidActivateSelectedApp(app: app)
   }
 }
 
-private class AppSwitcherListManager {
-  var appList: [NSRunningApplication] = [] {
-    didSet {
-      // print("appList: \(appList.map { $0.localizedName })")
-    }
-  }
+protocol AppListManagerDelegate: AnyObject {
+  func switcherListDidActivatedApp(app: NSRunningApplication)
+}
 
-  init() {
+private class AppListListManager: NSObject {
+  weak var delegate: AppListManagerDelegate?
+
+  var appList: [NSRunningApplication] = []
+
+  private var isAnimating = false
+
+  override init() {
+    super.init()
+
     appList = getAppsWithWindows()
-    // print(appList.map { $0.localizedName })
 
     NSWorkspace.shared.notificationCenter.addObserver(
       forName: NSWorkspace.didLaunchApplicationNotification,
@@ -94,13 +121,18 @@ private class AppSwitcherListManager {
   }
 
   private func handleApplicationActivated(_ notification: Notification) {
+    // print("handleApplicationActivated: \(notification)")
     if let userInfo = notification.userInfo,
        let activatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard activatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
+
+      // print("activatedApp: \(activatedApp.localizedName ?? "Unknown App")")
       var updatedAppList = appList.filter { $0.processIdentifier != activatedApp.processIdentifier }
       updatedAppList.insert(activatedApp, at: 0)
       appList = updatedAppList
+
+      // delegate?.switcherListDidActivatedApp(app: activatedApp)
     }
   }
 
