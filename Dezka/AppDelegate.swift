@@ -26,21 +26,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, Observable
     }
 
     KeyboardShortcuts.onKeyDown(for: .dezkaHotkey) { [self] in
-      // guard appSwitcher.isActive == false else { return }
+      print("Dezka onKeyDown")
 
-      // print("Dezka onKeyDown")
+      appSwitcher.switchToNextApp()
 
       // NSApp.activate(ignoringOtherApps: true)
-      // KeyboardShortcuts.disable(.dezkaHotkey)
-      // This is not actually "enabling" of the appSwitcher
-      // TODO: rename
-      appSwitcher.switchToNextApp()
 
       // createWindow()
     }
-
-    // let foo = getWindowsList()
-    // print(foo)
   }
 
   func appSwitcherDidFinish() {
@@ -130,114 +123,5 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, Observable
     menu.addItem(
       NSMenuItem(title: "Quit", action: #selector(handleMenuQuitApp), keyEquivalent: "q"))
     statusItem.menu = menu
-  }
-
-  private func getWindowsList() -> [WindowDef] {
-    let options = CGWindowListOption(arrayLiteral: .excludeDesktopElements, .optionOnScreenOnly)
-    let windowsListInfo = CGWindowListCopyWindowInfo(options, CGWindowID(0))
-
-    guard let infoList = windowsListInfo as? [[String: Any]] else {
-      return []
-    }
-
-    let visibleWindows = infoList.filter { windowInfo in
-      guard let layer = windowInfo["kCGWindowLayer"] as? Int,
-            let ownerName = windowInfo["kCGWindowOwnerName"] as? String
-      else {
-        return false
-      }
-      return layer == 0 && ownerName != "WindowManager"
-    }
-
-    return visibleWindows.map { windowInfo in
-      guard let name = windowInfo["kCGWindowOwnerName"] as? String,
-            let wid = windowInfo["kCGWindowNumber"] as? Int,
-            let pid = windowInfo["kCGWindowOwnerPID"] as? Int
-      else {
-        fatalError("Missing window property")
-      }
-
-      // So far, Google Chrome is the only alias I want to hardcode
-      var alias = String(name.first!).uppercased()
-      if name == "Google Chrome" {
-        alias = "C"
-      }
-
-      let matchedApp = NSWorkspace.shared.runningApplications.filter { app in
-        app.processIdentifier == pid
-      }.first
-
-      guard let icon = matchedApp?.icon else {
-        fatalError("Could not retrieve window icon.")
-      }
-
-      return WindowDef(
-        name: name,
-        wid: wid,
-        pid: pid,
-        alias: alias,
-        icon: icon
-      )
-    }.uniqued()
-  }
-}
-
-struct WindowDef: Identifiable, Hashable {
-  let id = UUID()
-
-  /// Name of the window.
-  let name: String
-
-  /// ID of the window.
-  let wid: Int
-
-  /// Process ID owning the window.
-  let pid: Int
-
-  /// Alias name for the window.
-  let alias: String
-
-  /// Icon image for the window.
-  let icon: NSImage
-
-  // MARK: Initialize
-
-  /// Initialize a new window definition.
-  ///
-  /// - Parameters:
-  ///   - name: Name of the window.
-  ///   - wid: ID of the window.
-  ///   - pid: ID of the process owning the window.
-  ///   - alias: Alias name for the window.
-  ///   - icon: Icon image for the window.
-  init(
-    name: String = "",
-    wid: Int = -1,
-    pid: Int = -1,
-    alias: String = "",
-    icon: NSImage
-  ) {
-    self.name = name
-    self.wid = wid
-    self.pid = pid
-    self.alias = alias
-    self.icon = icon
-  }
-
-  // MARK: Hashable
-
-  func hash(into hasher: inout Hasher) {
-    hasher.combine(pid)
-  }
-
-  static func == (left: WindowDef, right: WindowDef) -> Bool {
-    return left.pid == right.pid
-  }
-}
-
-extension Sequence where Element: Hashable {
-  func uniqued() -> [Element] {
-    var set = Set<Element>()
-    return filter { set.insert($0).inserted }
   }
 }

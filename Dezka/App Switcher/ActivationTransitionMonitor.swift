@@ -1,13 +1,17 @@
 import Cocoa
 
-protocol AppSwitcherDelegate: AnyObject {
-  func appSwitcher(_ switcher: AppSwitcher, didActivateAppOnSameSpace app: NSRunningApplication)
-  func appSwitcher(_ switcher: AppSwitcher, willActivateAppOnDifferentSpace app: NSRunningApplication)
-  func appSwitcher(_ switcher: AppSwitcher, didFinishSpaceTransitionFor app: NSRunningApplication)
+protocol ActivationTransitionMonitorDelegate: AnyObject {
+  func didActivateAppOnSameSpace(app: NSRunningApplication)
+  func willActivateAppOnDifferentSpace(app: NSRunningApplication)
+  func didFinishSpaceTransitionFor(app: NSRunningApplication)
 }
 
-class AppSwitcher: NSObject {
-  weak var delegate: AppSwitcherDelegate?
+extension ActivationTransitionMonitorDelegate {
+  func willActivateAppOnDifferentSpace(app: NSRunningApplication) {}
+}
+
+class ActivationTransitionMonitor: NSObject {
+  weak var delegate: ActivationTransitionMonitorDelegate?
 
   private var isAnimating = false
   private var activeSpaceChangeObserver: Any?
@@ -22,10 +26,19 @@ class AppSwitcher: NSObject {
   private var lastActivatedApp: NSRunningApplication?
 
   var isDebugEnabled = false
+  var isMonitoringEnabled: Bool = false
 
   override init() {
     super.init()
     setupObservers()
+  }
+
+  func enable() {
+    isMonitoringEnabled = true
+  }
+
+  func disable() {
+    isMonitoringEnabled = false
   }
 
   func setupObservers() {
@@ -35,6 +48,7 @@ class AppSwitcher: NSObject {
       object: nil,
       queue: .main
     ) { [weak self] notification in
+      guard (self?.isMonitoringEnabled) != nil else { return }
       // Execute immediately on main queue
       self?.handleApplicationActivated(notification)
     }
@@ -45,19 +59,23 @@ class AppSwitcher: NSObject {
       object: nil,
       queue: .main
     ) { [weak self] _ in
+      guard (self?.isMonitoringEnabled) != nil else { return }
       self?.handleSpaceChange()
     }
   }
 
   private func handleApplicationActivated(_ notification: Notification) {
-    guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else {
+    guard
+      let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+    else {
       return
     }
 
     // Immediately check if app is on current space
     if isAppVisibleOnCurrentSpace(app) {
       debugLog("App activated on current space: \(app.localizedName ?? "Unknown")")
-      delegate?.appSwitcher(self, didActivateAppOnSameSpace: app)
+      // delegate?.appSwitcher(self, didActivateAppOnSameSpace: app)
+      delegate?.didActivateAppOnSameSpace(app: app)
       return // Return immediately for same-space activation
     }
 
@@ -65,11 +83,14 @@ class AppSwitcher: NSObject {
     debugLog("App activated from different space: \(app.localizedName ?? "Unknown")")
     lastActivatedApp = app
     pendingSpaceChange = true
-    delegate?.appSwitcher(self, willActivateAppOnDifferentSpace: app)
+    delegate?.willActivateAppOnDifferentSpace(app: app)
   }
 
   private func isAppVisibleOnCurrentSpace(_ app: NSRunningApplication) -> Bool {
-    guard let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] else {
+    guard
+      let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
+      as? [[String: Any]]
+    else {
       return false
     }
 
@@ -93,14 +114,19 @@ class AppSwitcher: NSObject {
   }
 
   private func startPolling(for app: NSRunningApplication) {
-    if let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]],
-       let firstWindow = windowList.first(where: { ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier })
+    if let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
+      as? [[String: Any]],
+      let firstWindow = windowList.first(where: {
+        ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier
+      })
     {
-      frameBeforeTransition = CGRect(dictionaryRepresentation: firstWindow[kCGWindowBounds as String] as! CFDictionary)
+      frameBeforeTransition = CGRect(
+        dictionaryRepresentation: firstWindow[kCGWindowBounds as String] as! CFDictionary)
     }
 
     pollTimer?.invalidate()
-    pollTimer = Timer.scheduledTimer(withTimeInterval: pollInterval, repeats: true) { [weak self] _ in
+    pollTimer = Timer.scheduledTimer(withTimeInterval: pollInterval, repeats: true) {
+      [weak self] _ in
       self?.checkTransitionComplete()
     }
   }
@@ -115,15 +141,19 @@ class AppSwitcher: NSObject {
     }
 
     guard let app = lastActivatedApp,
-          let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]],
-          let firstWindow = windowList.first(where: { ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier }),
+          let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
+          as? [[String: Any]],
+          let firstWindow = windowList.first(where: {
+            ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier
+          }),
           let frameBeforeTransition = frameBeforeTransition
     else {
       stopPolling()
       return
     }
 
-    let currentFrame = CGRect(dictionaryRepresentation: firstWindow[kCGWindowBounds as String] as! CFDictionary)!
+    let currentFrame = CGRect(
+      dictionaryRepresentation: firstWindow[kCGWindowBounds as String] as! CFDictionary)!
 
     if currentFrame == frameBeforeTransition {
       unchangedFrameCount += 1
@@ -134,7 +164,8 @@ class AppSwitcher: NSObject {
 
     if unchangedFrameCount >= requiredStableFrames {
       stopPolling()
-      delegate?.appSwitcher(self, didFinishSpaceTransitionFor: app)
+      // delegate?.appSwitcher(self, didFinishSpaceTransitionFor: app)
+      delegate?.didFinishSpaceTransitionFor(app: app)
     }
   }
 

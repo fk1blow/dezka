@@ -9,17 +9,20 @@ protocol AppSwitcherDelegate: AnyObject {
   func appSwitcherDidFinish()
 }
 
-class AppSwitcher: AppSwitcherKeyboardMonitorDelegate, AppSwitcherNavigatorDelegate {
+class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDelegate {
   weak var delegate: AppSwitcherDelegate?
 
-  private let keyboardMonitor = AppSwitcherKeyboardMonitor()
-  private let appNavigator = AppSwitcherNavigator()
+  private let activationKeyMonitor = ActivationKeyMonitor()
+  private let appNavigator = AppNavigator()
+  private let activationTransitionMonitor = ActivationTransitionMonitor()
 
   private var cycleStateMachine = AppSwitcherCycleStateMachine()
 
+  private var selectedApp: NSRunningApplication?
+
   init() {
-    keyboardMonitor.delegate = self
-    appNavigator.delegate = self
+    activationKeyMonitor.delegate = self
+    activationTransitionMonitor.delegate = self
   }
 
   func switchToNextApp() {
@@ -29,47 +32,57 @@ class AppSwitcher: AppSwitcherKeyboardMonitorDelegate, AppSwitcherNavigatorDeleg
 
     switch cycleStateMachine.state {
     case .inactive:
-      // print("inactive --->")
-      keyboardMonitor.startMonitoring()
+      print("inactive --->")
+
+      activationTransitionMonitor.enable()
+      activationKeyMonitor.enable()
       appNavigator.navigateToNext()
       cycleStateMachine.next()
     case .cycling:
-      // print("cycling --->")
+      print("cycling --->")
       appNavigator.navigateToNext()
     case .activating:
-      // print("waiting --->")
-      keyboardMonitor.stopMonitoring()
-      // appNavigator.getSelectedApp()?.activate(options: [.activateAllWindows])
-      // cycleStateMachine.next()
+      print("waiting --->")
+    // keyboardMonitor.stopMonitoring()
+    // appNavigator.getSelectedApp()?.activate(options: [.activateAllWindows])
+    // cycleStateMachine.next()
     }
   }
 
-  func keyboardMonitorDidCompleteActivation() {
-    keyboardMonitor.stopMonitoring()
-
+  func didReleaseActivationKey() {
     guard cycleStateMachine.state == .cycling else { return }
 
-    // print("didComplateActivation")
+    print("didReleaseActivationKey")
+
+    appNavigator.activateSelectedApp()
+
+    activationTransitionMonitor.disable()
+
+    activationKeyMonitor.disable()
 
     cycleStateMachine.next()
-    appNavigator.activateSelectedApp()
   }
 
-  func keyboardMonitorDidTriggerNavigation(to direction: SwitcherNavigationDirection) {
-    print("didTriggerNavigation: \(direction)")
-  }
+  func didActivateAppOnSameSpace(app: NSRunningApplication) {
+    // guard cycleStateMachine.state == .activating else { return }
 
-  func navigatorDidActivateSelectedApp(app _: NSRunningApplication) {
+    // if cycleStateMachine.state == .cycling {
+
+    // }
+
+    print("didActivateAppOnSameSpace: \(app.localizedName ?? "Unknown App")")
+
     guard cycleStateMachine.state == .activating else { return }
 
-    keyboardMonitor.stopMonitoring()
-
-    print("????")
-
-    // print("navigatorDidActivateSelectedApp: \(app.localizedName ?? "Unknown App")")
     cycleStateMachine.next()
-    // app.activate(options: [.activateAllWindows])
-    // delegate?.appSwitcherDidFinish()
+  }
+
+  func didFinishSpaceTransitionFor(app: NSRunningApplication) {
+    guard cycleStateMachine.state == .activating else { return }
+
+    print("didFinishSpaceTransitionFor: \(app.localizedName ?? "Unknown App")")
+
+    cycleStateMachine.next()
   }
 }
 
@@ -82,12 +95,12 @@ enum AppSwitcherCycleState {
 class AppSwitcherCycleStateMachine {
   private(set) var state: AppSwitcherCycleState = .inactive {
     didSet {
-      print("--> state: \(state)")
+      print("# new state: \(state)")
     }
   }
 
   init() {
-    print("initial state: \(state)")
+    print("# initial state: \(state)")
   }
 
   func next() {
