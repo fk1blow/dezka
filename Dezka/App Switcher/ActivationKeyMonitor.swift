@@ -15,6 +15,9 @@ class ActivationKeyMonitor {
   private var flagsChangedEventMonitor: Any?
   private var activeModifierKeys: Set<ModifierKey> = []
 
+  // TODO don't like this, too error prone
+  // caller must have knowledge of the internals of this class
+  // and remember to "dance" around the `enable/disable` methods.
   func enable() {
     activeModifierKeys = [
       ModifierKey.shift,
