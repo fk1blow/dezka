@@ -10,23 +10,14 @@ import SwiftUI
 class AppNavigator {
   private let appListManager = AppListManager()
 
-  private var navigationAtIndex: Int = 0 {
-    didSet {
-      let wouldBeApp = appListManager.appList[navigationAtIndex]
-      // print("should selected app: \(wouldBeApp.localizedName ?? "Unknown App")")
-    }
-  }
-
-  init() {
-    print(NSWorkspace.shared.frontmostApplication)
-  }
+  private var navigationAtIndex: Int = 0
 
   func navigateToNext() {
     guard navigationAtIndex < appListManager.appList.count - 1 else { return }
     navigationAtIndex += 1
 
     let wouldBeApp = appListManager.appList[navigationAtIndex]
-    print("wouldBeApp: \(wouldBeApp.localizedName ?? "Unknown App")")
+    // print("wouldBeApp: \(wouldBeApp.localizedName ?? "Unknown App")")
   }
 
   func navigaToPrevious() {
@@ -35,25 +26,23 @@ class AppNavigator {
   }
 
   func resetNavigation() {
-    resetNavigationIndex()
-  }
-
-  private func resetNavigationIndex() {
-    navigationAtIndex = 0
+    resetNavigationStart()
   }
 
   func activateSelectedApp() {
     guard appListManager.appList.indices.contains(navigationAtIndex) else { return }
     let targetApp = appListManager.appList[navigationAtIndex]
 
-    if appCanBeSelected(app: targetApp) {
-      targetApp.activate(options: [.activateIgnoringOtherApps])
-    }
+    targetApp.activate(options: [.activateIgnoringOtherApps])
 
-    resetNavigationIndex()
+    resetNavigationStart()
   }
 
-  func appCanBeSelected(app: NSRunningApplication) -> Bool {
+  private func resetNavigationStart() {
+    navigationAtIndex = 0
+  }
+
+  private func appCanBeSelected(app: NSRunningApplication) -> Bool {
     let frontmostApp = NSWorkspace.shared.frontmostApplication
 
     if frontmostApp?.processIdentifier == app.processIdentifier {
