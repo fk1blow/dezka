@@ -79,7 +79,7 @@ class ActivationTransitionMonitor: NSObject {
       debugLog("App activated on current space: \(app.localizedName ?? "Unknown")")
       // delegate?.appSwitcher(self, didActivateAppOnSameSpace: app)
       delegate?.didActivateAppOnSameSpace(app: app)
-      return // Return immediately for same-space activation
+      return  // Return immediately for same-space activation
     }
 
     // Different space case
@@ -92,7 +92,7 @@ class ActivationTransitionMonitor: NSObject {
   private func isAppVisibleOnCurrentSpace(_ app: NSRunningApplication) -> Bool {
     guard
       let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
-      as? [[String: Any]]
+        as? [[String: Any]]
     else {
       return false
     }
@@ -144,12 +144,12 @@ class ActivationTransitionMonitor: NSObject {
     }
 
     guard let app = lastActivatedApp,
-          let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
-          as? [[String: Any]],
-          let firstWindow = windowList.first(where: {
-            ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier
-          }),
-          let frameBeforeTransition = frameBeforeTransition
+      let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
+        as? [[String: Any]],
+      let firstWindow = windowList.first(where: {
+        ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier
+      }),
+      let frameBeforeTransition = frameBeforeTransition
     else {
       stopPolling()
       return
