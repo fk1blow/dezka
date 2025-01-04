@@ -13,6 +13,8 @@ extension ActivationTransitionMonitorDelegate {
 class ActivationTransitionMonitor: NSObject {
   weak var delegate: ActivationTransitionMonitorDelegate?
 
+  var isMonitoringEnabled: Bool = false
+
   private var isAnimating = false
   private var activeSpaceChangeObserver: Any?
   private var pollTimer: Timer?
@@ -24,9 +26,6 @@ class ActivationTransitionMonitor: NSObject {
   private let requiredStableFrames = 3
   private var pendingSpaceChange = false
   private var lastActivatedApp: NSRunningApplication?
-
-  var isDebugEnabled = false
-  var isMonitoringEnabled: Bool = false
 
   override init() {
     super.init()
@@ -76,14 +75,14 @@ class ActivationTransitionMonitor: NSObject {
 
     // Immediately check if app is on current space
     if isAppVisibleOnCurrentSpace(app) {
-      debugLog("App activated on current space: \(app.localizedName ?? "Unknown")")
+      Debug.log("App activated on current space: \(app.localizedName ?? "Unknown")")
       // delegate?.appSwitcher(self, didActivateAppOnSameSpace: app)
       delegate?.didActivateAppOnSameSpace(app: app)
       return  // Return immediately for same-space activation
     }
 
     // Different space case
-    debugLog("App activated from different space: \(app.localizedName ?? "Unknown")")
+    Debug.log("App activated from different space: \(app.localizedName ?? "Unknown")")
     lastActivatedApp = app
     pendingSpaceChange = true
     delegate?.willActivateAppOnDifferentSpace(app: app)
@@ -111,7 +110,7 @@ class ActivationTransitionMonitor: NSObject {
 
     isAnimating = true
     pollStartTime = ProcessInfo.processInfo.systemUptime
-    debugLog("Space change detected, starting polling")
+    Debug.log("Space change detected, starting polling")
 
     startPolling(for: app)
   }
@@ -180,12 +179,6 @@ class ActivationTransitionMonitor: NSObject {
     unchangedFrameCount = 0
     pendingSpaceChange = false
     lastActivatedApp = nil
-  }
-
-  private func debugLog(_ message: String) {
-    if isDebugEnabled {
-      print("[AppSwitcher] \(message)")
-    }
   }
 
   deinit {
