@@ -10,12 +10,13 @@ import SwiftUI
 class AppNavigator {
   private let appListManager = AppListManager()
 
+  private let appListActivityMonitor = AppListActivityMonitor()
   private var navigationAtIndex: Int = 0
 
   func navigateToNext() {
-    guard navigationAtIndex < appListManager.appList.count - 1 else { return }
+    guard navigationAtIndex < appListActivityMonitor.appList.count - 1 else { return }
     navigationAtIndex += 1
-    let wouldBeApp = appListManager.appList[navigationAtIndex]
+    let wouldBeApp = appListActivityMonitor.appList[navigationAtIndex]
   }
 
   func navigaToPrevious() {
@@ -28,8 +29,8 @@ class AppNavigator {
   }
 
   func activateSelectedApp() {
-    guard appListManager.appList.indices.contains(navigationAtIndex) else { return }
-    let targetApp = appListManager.appList[navigationAtIndex]
+    guard appListActivityMonitor.appList.indices.contains(navigationAtIndex) else { return }
+    let targetApp = appListActivityMonitor.appList[navigationAtIndex]
     targetApp.activate(options: [.activateIgnoringOtherApps])
     resetNavigationStart()
   }
@@ -39,7 +40,7 @@ class AppNavigator {
   }
 }
 
-private class AppListManager: NSObject {
+private class AppListActivityMonitor: NSObject {
   var appList: [NSRunningApplication] = []
 
   override init() {
