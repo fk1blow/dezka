@@ -45,7 +45,7 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
     // When the dezka hotkey is being triggered, we assume that the user wants to continue the navigation
     // to the next app, so we can simply resume the navigation from the start.
     case .shouldActivateApp:
-      // print("... state in .shouldActivateApp, resume navigation to next app")
+      Debug.log("... state in .shouldActivateApp, resume navigation to next app")
       // go into the state of navigating through apps
       cycleStateMachine.continueNavigation()
       // reset the navigation(otherwise we would be stuck on the same app)
@@ -86,7 +86,7 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
     // we're interested in any action while the switcher is not inactive
     guard cycleStateMachine.state != .switcherInactive else { return }
 
-    print("didActivateAppOnSameSpace: \(app.localizedName)")
+    Debug.log("didActivateAppOnSameSpace: \(app.localizedName ?? "unknown")")
 
     // This happens when the app switcher is in the process of navigating to the next app
     // but an external factor(eg: mouse clicking and holding on an app) causes the app switcher
@@ -94,7 +94,7 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
     // In this case, the switcher assumes that an app has already been activated, therefore nothing
     // else needs to be done but to finish the activation flow.
     if cycleStateMachine.state == .navigatingThroughApps {
-      print("... state in .navigatingThroughApps, finish activation flow")
+      Debug.log("... state in .navigatingThroughApps, finish activation flow")
 
       cycleStateMachine.finishActivationFlow()
       activationKeyMonitor.disable()
@@ -114,13 +114,13 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
   func willActivateAppOnDifferentSpace(app: NSRunningApplication) {
     guard cycleStateMachine.state == .shouldActivateApp else { return }
 
-    print("willActivateAppOnDifferentSpace: \(app.localizedName)")
+    Debug.log("willActivateAppOnDifferentSpace: \(app.localizedName ?? "unknown")")
 
     cycleStateMachine.startAppTransition()
   }
 
   func didFinishSpaceTransitionFor(app: NSRunningApplication) {
-    print("didFinishSpaceTransitionFor: \(app.localizedName)")
+    Debug.log("didFinishSpaceTransitionFor: \(app.localizedName ?? "unknown")")
 
     activationTransitionMonitor.disable()
 
@@ -140,9 +140,9 @@ enum AppSwitcherCycleState {
 class AppSwitcherCycleStateMachine {
   private(set) var state: AppSwitcherCycleState = .switcherInactive {
     didSet {
-      print("*** new state: \(state) ***")
+      Debug.log("new state: \(state)")
       if state == .switcherInactive {
-        print("--------------- final state")
+        Debug.log("--------------- final state")
       }
     }
   }
