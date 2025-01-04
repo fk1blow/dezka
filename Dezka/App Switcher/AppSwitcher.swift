@@ -23,115 +23,143 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
   }
 
   func switchToNextApp() {
-    // If the state is .activating, this means another factor(eg: mouse cliking on an app)
-    // prevented the app switcher from finishing the activation.
-    // This causes the app switcher to be stuck in the '.activating' state and unable to switch
-    // to the next app, until some other event triggers the app switcher to move to the next state.
-    if cycleStateMachine.state == .activating {
-      // notsure if this is the right way to handle this
-      // but for now...
-      activationKeyMonitor.disable()
-
-      activationTransitionMonitor.enable()
-      activationKeyMonitor.enable()
-
-      // want to start from the beginning
-      // and continue just like it would in the `.inactive` state
-      appNavigator.resetNavigation()
-      appNavigator.navigateToNext()
-
-      cycleStateMachine.goToCyclingState()
-
-      return
-    }
-
-    guard cycleStateMachine.state == .inactive || cycleStateMachine.state == .cycling else {
-      return
-    }
+    guard
+      cycleStateMachine.state == .switcherInactive
+        || cycleStateMachine.state == .navigatingThroughApps
+        || cycleStateMachine.state == .shouldActivateApp
+        || cycleStateMachine.state == .switcherInactive
+    else { return }
 
     switch cycleStateMachine.state {
-    case .inactive:
-      activationTransitionMonitor.enable()
+    case .switcherInactive:
+      cycleStateMachine.continueNavigation()
+      // activationTransitionMonitor.enable()
       activationKeyMonitor.enable()
       appNavigator.navigateToNext()
-      cycleStateMachine.next()
-    case .cycling:
+
+      break
+
+    // This is a state that might be reached when the app switcher was in the process of activating
+    // an app, but an external factor(eg: mouse clicking/holding on another app) caused the switcher
+    // to get stuck in the `.shouldActivateApp` state.
+    // When the dezka hotkey is being triggered, we assume that the user wants to continue the navigation
+    // to the next app, so we can simply resume the navigation from the start.
+    case .shouldActivateApp:
+      // print("... state in .shouldActivateApp, resume navigation to next app")
+      // go into the state of navigating through apps
+      cycleStateMachine.continueNavigation()
+      // reset the navigation(otherwise we would be stuck on the same app)
+      // TODO calling `resetNavigation` from here is a bit leaky, b/c the switcher knows or assumes
+      // about the internals of the navigator
+      appNavigator.resetNavigation()
       appNavigator.navigateToNext()
-    case .activating:
+      // enable activation key monitor
+      activationKeyMonitor.enable()
+
+      break
+
+    case .navigatingThroughApps:
+      appNavigator.navigateToNext()
+      break
+
+    case .activatedAppOnSameSpace, .transitionToAppOnDifferentSpace:
       break
     }
   }
 
   func didReleaseActivationKey() {
-    guard cycleStateMachine.state == .cycling else { return }
-
-    appNavigator.activateSelectedApp()
-
-    // disable all monitors
-    activationTransitionMonitor.disable()
+    guard cycleStateMachine.state == .navigatingThroughApps else { return }
+    // we are now in the state of activating the app
+    cycleStateMachine.activateApp()
+    // no longer need to monitor the activation key
     activationKeyMonitor.disable()
-
-    // this should implicitly go to the `.activating` state
-    cycleStateMachine.next()
+    // now we monitor activation, either to an app on the same or a different space
+    activationTransitionMonitor.enable()
+    // and finally we activate the selected apop
+    appNavigator.activateSelectedApp()
   }
 
   func didActivateAppOnSameSpace(app: NSRunningApplication) {
+    // no longer need to monitor the activation transition
+    activationTransitionMonitor.disable()
+
+    // we're interested in any action while the switcher is not inactive
+    guard cycleStateMachine.state != .switcherInactive else { return }
+
+    print("didActivateAppOnSameSpace: \(app.localizedName)")
+
     // This happens when the app switcher is in the process of navigating to the next app
     // but an external factor(eg: mouse clicking and holding on an app) causes the app switcher
-    // to be stuck in the `.activating` state.
-    // In this case, the app switcher can simply assume that the app has been activated
-    // and move to the inactive state.
-    if cycleStateMachine.state == .cycling {
-      cycleStateMachine.goToInactiveState()
-      // disable every monitor
-      activationTransitionMonitor.disable()
+    // to be stuck in the `.navigatingThroughApps` state.
+    // In this case, the switcher assumes that an app has already been activated, therefore nothing
+    // else needs to be done but to finish the activation flow.
+    if cycleStateMachine.state == .navigatingThroughApps {
+      print("... state in .navigatingThroughApps, finish activation flow")
+
+      cycleStateMachine.finishActivationFlow()
       activationKeyMonitor.disable()
       // reset the navigation
+      // TODO calling `resetNavigation` from here is a bit leaky, b/c the switcher knows or assumes
+      // about the internals of the navigator
       appNavigator.resetNavigation()
       return
     }
 
-    guard cycleStateMachine.state == .activating else { return }
+    if cycleStateMachine.state == .shouldActivateApp {
+      cycleStateMachine.finishActivationFlow()
+      return
+    }
+  }
 
-    cycleStateMachine.next()
+  func willActivateAppOnDifferentSpace(app: NSRunningApplication) {
+    guard cycleStateMachine.state == .shouldActivateApp else { return }
+
+    print("willActivateAppOnDifferentSpace: \(app.localizedName)")
+
+    cycleStateMachine.startAppTransition()
   }
 
   func didFinishSpaceTransitionFor(app: NSRunningApplication) {
-    guard cycleStateMachine.state == .activating else { return }
+    print("didFinishSpaceTransitionFor: \(app.localizedName)")
 
-    cycleStateMachine.next()
+    activationTransitionMonitor.disable()
+
+    cycleStateMachine.finishActivationFlow()
   }
+
 }
 
 enum AppSwitcherCycleState {
-  case inactive
-  case cycling
-  case activating
+  case navigatingThroughApps
+  case shouldActivateApp
+  case transitionToAppOnDifferentSpace
+  case activatedAppOnSameSpace
+  case switcherInactive
 }
 
 class AppSwitcherCycleStateMachine {
-  private(set) var state: AppSwitcherCycleState = .inactive {
+  private(set) var state: AppSwitcherCycleState = .switcherInactive {
     didSet {
-      // print("# new state: \(state)")
+      print("*** new state: \(state) ***")
+      if state == .switcherInactive {
+        print("--------------- final state")
+      }
     }
   }
 
-  func goToCyclingState() {
-    state = .cycling
+  func activateApp() {
+    state = .shouldActivateApp
   }
 
-  func goToInactiveState() {
-    state = .inactive
+  func continueNavigation() {
+    state = .navigatingThroughApps
   }
 
-  func next() {
-    switch state {
-    case .inactive:
-      state = .cycling
-    case .cycling:
-      state = .activating
-    case .activating:
-      state = .inactive
-    }
+  func finishActivationFlow() {
+    state = .switcherInactive
+  }
+
+  func startAppTransition() {
+    state = .transitionToAppOnDifferentSpace
   }
 }
