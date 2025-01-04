@@ -48,8 +48,9 @@ class ActivationTransitionMonitor: NSObject {
       object: nil,
       queue: .main
     ) { [weak self] notification in
-      guard (self?.isMonitoringEnabled) != nil else { return }
-      // Execute immediately on main queue
+      guard let strongSelf = self, strongSelf.isMonitoringEnabled else {
+        return
+      }
       self?.handleApplicationActivated(notification)
     }
 
@@ -59,7 +60,9 @@ class ActivationTransitionMonitor: NSObject {
       object: nil,
       queue: .main
     ) { [weak self] _ in
-      guard (self?.isMonitoringEnabled) != nil else { return }
+      guard let strongSelf = self, strongSelf.isMonitoringEnabled else {
+        return
+      }
       self?.handleSpaceChange()
     }
   }
