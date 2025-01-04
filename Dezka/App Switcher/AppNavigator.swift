@@ -15,9 +15,7 @@ class AppNavigator {
   func navigateToNext() {
     guard navigationAtIndex < appListManager.appList.count - 1 else { return }
     navigationAtIndex += 1
-
     let wouldBeApp = appListManager.appList[navigationAtIndex]
-    // print("wouldBeApp: \(wouldBeApp.localizedName ?? "Unknown App")")
   }
 
   func navigaToPrevious() {
@@ -33,8 +31,6 @@ class AppNavigator {
     guard appListManager.appList.indices.contains(navigationAtIndex) else { return }
     let targetApp = appListManager.appList[navigationAtIndex]
     targetApp.activate(options: [.activateIgnoringOtherApps])
-    // print("---> app: \(targetApp.localizedName)")
-
     resetNavigationStart()
   }
 
