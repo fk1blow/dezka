@@ -33,6 +33,7 @@ class AppNavigator {
     guard appListManager.appList.indices.contains(navigationAtIndex) else { return }
     let targetApp = appListManager.appList[navigationAtIndex]
     targetApp.activate(options: [.activateIgnoringOtherApps])
+    // print("---> app: \(targetApp.localizedName)")
 
     resetNavigationStart()
   }
