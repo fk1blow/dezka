@@ -5,13 +5,21 @@
 
 import SwiftUI
 
-protocol AppSwitcherDelegate: AnyObject {
-  func appSwitcherDidFinish()
+class AppSwitcher {
+  private let appSwitcherManager = AppSwitcherManager()
+
+  func switchToNextApp() {
+    appSwitcherManager.switchToNextApp()
+  }
+
+  // TODO: implement this
+  // func switchToPreviousApp() {
+  //   appSwitcherManager.switchToNextApp()
+  // }
 }
 
-class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDelegate {
-  weak var delegate: AppSwitcherDelegate?
-
+private class AppSwitcherManager: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDelegate
+{
   private let activationKeyMonitor = ActivationKeyMonitor()
   private let appNavigator = AppNavigator()
   private let activationTransitionMonitor = ActivationTransitionMonitor()
@@ -126,10 +134,10 @@ class AppSwitcher: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDele
 
     cycleStateMachine.finishActivationFlow()
   }
-
 }
 
-enum AppSwitcherCycleState {
+// Transform this into to a reducer
+private enum AppSwitcherCycleState {
   case navigatingThroughApps
   case shouldActivateApp
   case transitionToAppOnDifferentSpace
@@ -137,7 +145,7 @@ enum AppSwitcherCycleState {
   case switcherInactive
 }
 
-class AppSwitcherCycleStateMachine {
+private class AppSwitcherCycleStateMachine {
   private(set) var state: AppSwitcherCycleState = .switcherInactive {
     didSet {
       Debug.log("new state: \(state)")
