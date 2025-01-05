@@ -1,3 +1,8 @@
+//
+//  Debug.swift
+//  Dezka
+//
+
 struct Debug {
   enum Level {
     case info, warning, error
