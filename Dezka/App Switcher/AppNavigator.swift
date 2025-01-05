@@ -3,49 +3,14 @@
 //  Dezka
 //
 
-import Cocoa
-import Combine
 import SwiftUI
 
 class AppNavigator {
-  private let appListManager = AppListManager()
-
-  private let appListActivityMonitor = AppListActivityMonitor()
+  private var appList: [NSRunningApplication] = []
   private var navigationAtIndex: Int = 0
+  private var searchTerm: String = ""
 
-  func navigateToNext() {
-    guard navigationAtIndex < appListActivityMonitor.appList.count - 1 else { return }
-    navigationAtIndex += 1
-    let wouldBeApp = appListActivityMonitor.appList[navigationAtIndex]
-  }
-
-  func navigaToPrevious() {
-    guard navigationAtIndex > 0 else { return }
-    navigationAtIndex -= 1
-  }
-
-  func resetNavigation() {
-    resetNavigationStart()
-  }
-
-  func activateSelectedApp() {
-    guard appListActivityMonitor.appList.indices.contains(navigationAtIndex) else { return }
-    let targetApp = appListActivityMonitor.appList[navigationAtIndex]
-    targetApp.activate(options: [.activateIgnoringOtherApps])
-    resetNavigationStart()
-  }
-
-  private func resetNavigationStart() {
-    navigationAtIndex = 0
-  }
-}
-
-private class AppListActivityMonitor: NSObject {
-  var appList: [NSRunningApplication] = []
-
-  override init() {
-    super.init()
-
+  init() {
     appList = getAppsWithWindows()
 
     NSWorkspace.shared.notificationCenter.addObserver(
@@ -68,6 +33,32 @@ private class AppListActivityMonitor: NSObject {
       queue: .main,
       using: handleApplicationActivated
     )
+  }
+
+  func navigateToNext() {
+    guard navigationAtIndex < appList.count - 1 else { return }
+    navigationAtIndex += 1
+    let wouldBeApp = appList[navigationAtIndex]
+  }
+
+  func navigaToPrevious() {
+    guard navigationAtIndex > 0 else { return }
+    navigationAtIndex -= 1
+  }
+
+  func resetNavigation() {
+    resetNavigationStart()
+  }
+
+  func activateSelectedApp() {
+    guard appList.indices.contains(navigationAtIndex) else { return }
+    let targetApp = appList[navigationAtIndex]
+    targetApp.activate(options: [.activateIgnoringOtherApps])
+    resetNavigationStart()
+  }
+
+  private func resetNavigationStart() {
+    navigationAtIndex = 0
   }
 
   private func handleApplicationLaunched(_ notification: Notification) {
