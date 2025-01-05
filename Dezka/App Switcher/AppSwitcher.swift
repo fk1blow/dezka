@@ -20,8 +20,8 @@ class AppSwitcher {
 
 private class AppSwitcherManager: ActivationKeyMonitorDelegate, ActivationTransitionMonitorDelegate
 {
-  private let activationKeyMonitor = ActivationKeyMonitor()
   private let appNavigator = AppNavigator()
+  private let activationKeyMonitor = ActivationKeyMonitor()
   private let activationTransitionMonitor = ActivationTransitionMonitor()
   private let cycleStateMachine = AppSwitcherCycleStateMachine()
 
