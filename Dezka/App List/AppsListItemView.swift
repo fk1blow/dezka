@@ -35,6 +35,16 @@ struct AppsListItemView: View {
     .frame(maxWidth: .infinity)
     .padding(EdgeInsets(top: 9, leading: 6, bottom: 9, trailing: 6))
     .onHover(perform: { hovering in self.isHovering = hovering })
+
+    .modifier(
+      MouseClickActions(
+        onMouseDown: {
+          // Do something on press...
+          print("clicked???")
+        },
+        onMouseUp: {}
+      )
+    )
     .background(itemSelectedStyle())
     .cornerRadius(8)
   }
@@ -53,5 +63,22 @@ struct AppsListItemView: View {
 
   private func getAppId() -> String {
     app.bundleIdentifier ?? ""
+  }
+}
+
+struct MouseClickActions: ViewModifier {
+  var onMouseDown: () -> Void
+  var onMouseUp: () -> Void
+  func body(content: Content) -> some View {
+    content
+      .simultaneousGesture(
+        DragGesture(minimumDistance: 0)
+          .onChanged({ _ in
+            onMouseDown()
+          })
+          .onEnded({ _ in
+            onMouseUp()
+          })
+      )
   }
 }
