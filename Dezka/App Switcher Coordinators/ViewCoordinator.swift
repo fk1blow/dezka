@@ -17,14 +17,14 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   init(appSwitcher: AppSwitcher) {
     super.init()
     self.appSwitcher = appSwitcher
-    self.monitorAppSwitcherStateChanges()
-    self.monitorOutsideClicks()
+    monitorAppSwitcherStateChanges()
+    monitorOutsideClicks()
   }
 
   func showSwitcherWindow() {
     stopTimer()
 
-    timer = Timer.scheduledTimer(withTimeInterval: 0.120, repeats: false) { _ in
+    timer = Timer.scheduledTimer(withTimeInterval: 0.150, repeats: false) { _ in
       self.createWindow()
     }
   }
@@ -38,7 +38,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   // if the app window ever gets focused then loses it, the `windowDidResignKey` will still be called
   func windowDidResignKey(_: Notification) {
     hideSwitcherWindow()
-    self.appSwitcher.appSwitcherShouldClose()
+    appSwitcher.appSwitcherShouldClose()
   }
 
   private func stopTimer() {
@@ -99,7 +99,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   private func monitorOutsideClicks() {
     globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
       .leftMouseDown
-    ]) { event in
+    ]) { _ in
       guard let window = self.window else { return }
 
       let mouseLocation = NSEvent.mouseLocation
@@ -115,7 +115,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   }
 
   private func monitorAppSwitcherStateChanges() {
-    self.activationCancellable = appSwitcher.cycleStateMachine.$state
+    activationCancellable = appSwitcher.cycleState.$state
       .sink { newState in
         if newState != .navigatingThroughApps {
           self.hideSwitcherWindow()
