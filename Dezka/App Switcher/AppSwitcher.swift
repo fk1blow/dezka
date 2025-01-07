@@ -7,6 +7,7 @@ import SwiftUI
 
 protocol AppSwitcherUI: AnyObject {
   var cycleStateMachine: AppSwitcherCycleStateMachine { get }
+  var appNavigator: AppNavigator { get }
   func appSwitcherShouldRemainOpen()
   func appSwitcherShouldClose()
 }
@@ -26,10 +27,10 @@ protocol AppSwitcherMonitoringDelegate: AnyObject {
 class AppSwitcher: ObservableObject, AppSwitcherMonitoringDelegate, AppSwitcherNavigation,
   AppSwitcherUI
 {
-  private let appNavigator = AppNavigator()
+  let cycleStateMachine = AppSwitcherCycleStateMachine()
+  let appNavigator = AppNavigator()
   private let activationKeyMonitor = ActivationKeyMonitor()
   private let activationTransitionMonitor = ActivationTransitionMonitor()
-  private(set) var cycleStateMachine = AppSwitcherCycleStateMachine()
 
   init() {
     activationKeyMonitor.delegate = self
@@ -76,9 +77,9 @@ class AppSwitcher: ObservableObject, AppSwitcherMonitoringDelegate, AppSwitcherN
     }
   }
 
+  // TODO: Refactor this method to be more DRY
   func navigateToPreviousApp() {
-    // TODO: implement this function
-    print("navigateToPreviousApp")
+    // TODO implement this
   }
 
   func didReleaseActivationKey() {
@@ -155,6 +156,8 @@ class AppSwitcher: ObservableObject, AppSwitcherMonitoringDelegate, AppSwitcherN
   }
 
   func appSwitcherShouldClose() {
+    // reset the navigation
+    appNavigator.resetNavigation()
     // no longer need to monitor the activation key
     activationKeyMonitor.disableMonitoring()
     // now we monitor activation, either to an app on the same or a different space
