@@ -113,6 +113,21 @@ extension AppSwitcher: AppSwitcherNavigation {
   }
 
   func navigateToNextApp() {
+    handleNavigationTraversal(in: .next)
+  }
+
+  func navigateToPreviousApp() {
+    handleNavigationTraversal(in: .previous)
+  }
+
+  func activateSelectedApp() {
+    appNavigator.activateSelectedApp()
+  }
+
+  private func handleNavigationTraversal(in traversal: AppNavigatorTraversal) {
+    let navigatorTraversalFn =
+      traversal == .next ? appNavigator.navigateToNext : appNavigator.navigateToPrevious
+
     guard
       cycleStateMachine.state == .switcherInactive
         || cycleStateMachine.state == .navigatingThroughApps
@@ -125,7 +140,7 @@ extension AppSwitcher: AppSwitcherNavigation {
       cycleStateMachine.continueNavigation()
       // activationTransitionMonitor.enable()
       activationKeyMonitor.enableMonitoring()
-      appNavigator.navigateToNext()
+      navigatorTraversalFn()
 
     // This is a state that might be reached when the app switcher was in the process of activating
     // an app, but an external factor(eg: mouse clicking/holding on another app) caused the switcher
@@ -140,25 +155,16 @@ extension AppSwitcher: AppSwitcherNavigation {
       // TODO: calling `resetNavigation` from here is a bit leaky, b/c the switcher knows or assumes
       // about the internals of the navigator
       appNavigator.resetNavigation()
-      appNavigator.navigateToNext()
+      navigatorTraversalFn()
       // enable activation key monitor
       activationKeyMonitor.enableMonitoring()
 
     case .navigatingThroughApps:
-      appNavigator.navigateToNext()
+      navigatorTraversalFn()
 
     case .activatedAppOnSameSpace, .transitionToAppOnDifferentSpace, .focusedWhileOpen:
       break
     }
-  }
-
-  // TODO: Refactor this method to be more DRY
-  func navigateToPreviousApp() {
-    // TODO: implement this
-  }
-
-  func activateSelectedApp() {
-    appNavigator.activateSelectedApp()
   }
 }
 

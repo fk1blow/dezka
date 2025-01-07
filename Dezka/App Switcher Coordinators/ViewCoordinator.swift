@@ -35,10 +35,10 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   }
 
   // Although we're not calling `NSApp.activate(ignoringOtherApps: true)` when creating the window,
-  // if the app window ever gets focused then loses it, the `windowDidResignKey` will still be called
+  // if the app window ever gets focused(eg: mouse click) then loses it, the `windowDidResignKey`
+  // would still be called
   func windowDidResignKey(_: Notification) {
     hideSwitcherWindow()
-    appSwitcher.appSwitcherShouldClose()
   }
 
   private func stopTimer() {
@@ -56,7 +56,6 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
 
   private func createWindow() {
     if window == nil {
-      // let contentView = ContentView()
       let appSwitcherContentViewModel = AppSwitcherContentViewModel(
         appSwitcher: appSwitcher
       )
