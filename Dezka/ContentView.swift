@@ -61,9 +61,9 @@ struct ContentView: View {
 }
 
 #Preview {
-  @Previewable @StateObject var appDelegate = AppDelegate()
-
-  ContentView()
-    .environmentObject(appDelegate)
-    .frame(width: 600, height: 400)
+//  @Previewable @StateObject var appDelegate = AppDelegate()
+//
+//  ContentView()
+//    .environmentObject(appDelegate)
+//    .frame(width: 600, height: 400)
 }

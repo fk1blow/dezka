@@ -3,14 +3,10 @@
 //  Dezka
 //
 
-import SwiftUI
-
-protocol ActivationKeyMonitorDelegate: AnyObject {
-  func didReleaseActivationKey()
-}
+import AppKit
 
 class ActivationKeyMonitor {
-  weak var delegate: ActivationKeyMonitorDelegate?
+  weak var delegate: AppSwitcherMonitoringDelegate?
 
   private var monitoringIsActive = false {
     willSet {
@@ -28,7 +24,7 @@ class ActivationKeyMonitor {
   private var isAppActive: Bool { NSApp.isActive }
 
   init() {
-    // Observe app focus changes to switch monitors dynamically
+    // Observe Dezka app focus changes to switch monitors dynamically
     NotificationCenter.default.addObserver(
       self,
       selector: #selector(appDidBecomeActive),

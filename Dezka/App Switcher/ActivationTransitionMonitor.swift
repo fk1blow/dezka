@@ -1,17 +1,12 @@
+//
+//  ActivationTransitionMonitor.swift
+//  Dezka
+//
+
 import Cocoa
 
-protocol ActivationTransitionMonitorDelegate: AnyObject {
-  func didActivateAppOnSameSpace(app: NSRunningApplication)
-  func willActivateAppOnDifferentSpace(app: NSRunningApplication)
-  func didFinishSpaceTransitionFor(app: NSRunningApplication)
-}
-
-extension ActivationTransitionMonitorDelegate {
-  func willActivateAppOnDifferentSpace(app: NSRunningApplication) {}
-}
-
 class ActivationTransitionMonitor: NSObject {
-  weak var delegate: ActivationTransitionMonitorDelegate?
+  weak var delegate: AppSwitcherMonitoringDelegate?
 
   var isMonitoringEnabled: Bool = false
 

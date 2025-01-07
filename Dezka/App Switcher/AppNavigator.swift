@@ -6,9 +6,8 @@
 import SwiftUI
 
 class AppNavigator {
-  private var appList: [NSRunningApplication] = []
+  private(set) var appList: [NSRunningApplication] = []
   private var navigationAtIndex: Int = 0
-  private var searchTerm: String = ""
 
   init() {
     appList = getAppsWithWindows()
@@ -38,7 +37,6 @@ class AppNavigator {
   func navigateToNext() {
     guard navigationAtIndex < appList.count - 1 else { return }
     navigationAtIndex += 1
-    let wouldBeApp = appList[navigationAtIndex]
   }
 
   func navigaToPrevious() {
@@ -54,6 +52,7 @@ class AppNavigator {
     guard appList.indices.contains(navigationAtIndex) else { return }
     let targetApp = appList[navigationAtIndex]
     targetApp.activate(options: [.activateIgnoringOtherApps])
+    // Debug.log("Activating app: \(targetApp.localizedName ?? "unknown")")
     resetNavigationStart()
   }
 
