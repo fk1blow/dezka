@@ -19,13 +19,13 @@ class AppSwitcherContentViewModel: ObservableObject {
   }
 
   private func setupObservation() {
-    appSwitcher.appNavigator.$appsList
+    appSwitcher.navigationState.map(\.visibleApps)
       .assign(to: &$appsList)
 
-    appSwitcher.appNavigator.$appListFilterQuery
+    appSwitcher.navigationState.map(\.appSearchQuery)
       .assign(to: &$filterQuery)
 
-    appSwitcher.appNavigator.$navigationAtIndex
+    appSwitcher.navigationState.map(\.navigationIndex)
       .assign(to: &$navigationAtIndex)
   }
 }
