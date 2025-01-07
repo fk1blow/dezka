@@ -5,6 +5,11 @@
 
 import SwiftUI
 
+enum AppNavigatorTraversal {
+  case next
+  case previous
+}
+
 struct AppNavigatorState {
   var appSearchQuery: String = ""
   var visibleApps: [NSRunningApplication] = []
@@ -57,6 +62,7 @@ class AppNavigator: ObservableObject {
     guard state.visibleApps.indices.contains(state.navigationIndex) else { return }
     let targetApp = state.visibleApps[state.navigationIndex]
     targetApp.activate(options: [.activateIgnoringOtherApps])
+    Debug.log("Activating app: \(targetApp.localizedName ?? "unknown")")
     resetNavigation()
   }
 
