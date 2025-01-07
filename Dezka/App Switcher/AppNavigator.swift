@@ -5,12 +5,13 @@
 
 import SwiftUI
 
-class AppNavigator {
-  private(set) var appList: [NSRunningApplication] = []
-  private var navigationAtIndex: Int = 0
+class AppNavigator: ObservableObject {
+  @Published private(set) var appListFilterQuery: String = ""
+  @Published private(set) var appsList: [NSRunningApplication] = []
+  @Published private(set) var navigationAtIndex: Int = 0
 
   init() {
-    appList = getAppsWithWindows()
+    appsList = getAppsWithWindows()
 
     NSWorkspace.shared.notificationCenter.addObserver(
       forName: NSWorkspace.didLaunchApplicationNotification,
@@ -35,11 +36,11 @@ class AppNavigator {
   }
 
   func navigateToNext() {
-    guard navigationAtIndex < appList.count - 1 else { return }
+    guard navigationAtIndex < appsList.count - 1 else { return }
     navigationAtIndex += 1
   }
 
-  func navigaToPrevious() {
+  func navigateToPrevious() {
     guard navigationAtIndex > 0 else { return }
     navigationAtIndex -= 1
   }
@@ -49,8 +50,8 @@ class AppNavigator {
   }
 
   func activateSelectedApp() {
-    guard appList.indices.contains(navigationAtIndex) else { return }
-    let targetApp = appList[navigationAtIndex]
+    guard appsList.indices.contains(navigationAtIndex) else { return }
+    let targetApp = appsList[navigationAtIndex]
     targetApp.activate(options: [.activateIgnoringOtherApps])
     // Debug.log("Activating app: \(targetApp.localizedName ?? "unknown")")
     resetNavigationStart()
@@ -65,7 +66,7 @@ class AppNavigator {
       let launchedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard launchedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
-      appList.append(launchedApp)
+      appsList.append(launchedApp)
     }
   }
 
@@ -74,7 +75,7 @@ class AppNavigator {
       let terminatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard terminatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
-      appList.removeAll { $0.processIdentifier == terminatedApp.processIdentifier }
+      appsList.removeAll { $0.processIdentifier == terminatedApp.processIdentifier }
     }
   }
 
@@ -84,9 +85,11 @@ class AppNavigator {
     {
       guard activatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
 
-      var updatedAppList = appList.filter { $0.processIdentifier != activatedApp.processIdentifier }
+      var updatedAppList = appsList.filter {
+        $0.processIdentifier != activatedApp.processIdentifier
+      }
       updatedAppList.insert(activatedApp, at: 0)
-      appList = updatedAppList
+      appsList = updatedAppList
     }
   }
 
