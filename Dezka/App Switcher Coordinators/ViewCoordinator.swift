@@ -24,7 +24,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   func showSwitcherWindow() {
     stopTimer()
 
-    timer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: false) { _ in
+    timer = Timer.scheduledTimer(withTimeInterval: 0.120, repeats: false) { _ in
       self.createWindow()
     }
   }
@@ -56,7 +56,13 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
 
   private func createWindow() {
     if window == nil {
-      let contentView = ContentView()
+      // let contentView = ContentView()
+      let appSwitcherContentViewModel = AppSwitcherContentViewModel(
+        appSwitcher: appSwitcher
+      )
+      let appSwitcherContentView = AppSwitcherContentView(
+        appSwitcherContentViewModel: appSwitcherContentViewModel
+      )
 
       window = NSWindow(
         contentRect: NSRect(x: 0, y: 0, width: 500, height: 450),
@@ -66,7 +72,8 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
       // window?.alphaValue = 0
       window?.delegate = self
       window?.isReleasedWhenClosed = false
-      window?.contentView = NSHostingView(rootView: contentView.frame(width: 500, height: 450))
+      window?.contentView = NSHostingView(
+        rootView: appSwitcherContentView.frame(width: 500, height: 450))
       window?.titleVisibility = .hidden
       window?.titlebarAppearsTransparent = true
       window?.isMovable = false
