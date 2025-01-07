@@ -8,9 +8,9 @@ import SwiftUI
 class AppSwitcherContentViewModel: ObservableObject {
   let appSwitcher: AppSwitcherUI & AppSwitcherNavigation
 
-  @Published private(set) var appsList: [NSRunningApplication] = []
-  @Published private(set) var filterQuery: String = ""
-  @Published private(set) var navigationAtIndex: Int = 0
+  @Published private(set) var visibleApps: [NSRunningApplication] = []
+  @Published private(set) var appSearchQuery: String = ""
+  @Published private(set) var navigationIndex: Int = 0
 
   init(appSwitcher: AppSwitcherUI & AppSwitcherNavigation) {
     self.appSwitcher = appSwitcher
@@ -20,12 +20,12 @@ class AppSwitcherContentViewModel: ObservableObject {
 
   private func setupObservation() {
     appSwitcher.navigationState.map(\.visibleApps)
-      .assign(to: &$appsList)
+      .assign(to: &$visibleApps)
 
     appSwitcher.navigationState.map(\.appSearchQuery)
-      .assign(to: &$filterQuery)
+      .assign(to: &$appSearchQuery)
 
     appSwitcher.navigationState.map(\.navigationIndex)
-      .assign(to: &$navigationAtIndex)
+      .assign(to: &$navigationIndex)
   }
 }

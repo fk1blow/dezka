@@ -37,9 +37,9 @@ struct AppSwitcherContentView: View {
         Spacer()
 
         AppListView(
-          filterQuery: appSwitcherContentViewModel.filterQuery,
-          appsList: appSwitcherContentViewModel.appsList,
-          navigationAtIndex: appSwitcherContentViewModel.navigationAtIndex
+          filterQuery: appSwitcherContentViewModel.appSearchQuery,
+          appsList: appSwitcherContentViewModel.visibleApps,
+          navigationAtIndex: appSwitcherContentViewModel.navigationIndex
         )
 
         AppFooterView()
