@@ -8,5 +8,6 @@
 import KeyboardShortcuts
 
 extension KeyboardShortcuts.Name {
-  static let dezkaHotkey = Self("dezkaHotkey")
+  static let dezkaHotkeyNext = Self("dezkaHotkeyNext")
+  static let dezkaHotkeyPrevious = Self("dezkaHotkeyPrevious")
 }
