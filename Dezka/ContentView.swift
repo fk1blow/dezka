@@ -10,6 +10,8 @@ import SwiftUI
 struct ContentView: View {
   @State private var searchTerm = ""
 
+  // @EnvironmentObject var appNavigator: AppSwitcherNavigation & AppSwitcherUI
+
   var body: some View {
     VStack(
       alignment: .center, spacing: 0,
@@ -36,7 +38,7 @@ struct ContentView: View {
 
         Spacer()
 
-        AppListView(searchTerm: $searchTerm)
+//        AppListView(searchTerm: $searchTerm)
 
         // AppFooterView()
       }
@@ -61,9 +63,9 @@ struct ContentView: View {
 }
 
 #Preview {
-//  @Previewable @StateObject var appDelegate = AppDelegate()
-//
-//  ContentView()
-//    .environmentObject(appDelegate)
-//    .frame(width: 600, height: 400)
+  //  @Previewable @StateObject var appDelegate = AppDelegate()
+  //
+  //  ContentView()
+  //    .environmentObject(appDelegate)
+  //    .frame(width: 600, height: 400)
 }
