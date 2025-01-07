@@ -24,16 +24,11 @@ struct AppsListItemView: View {
         .foregroundStyle(Color(hex: "#F2F2F2"))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 
-      Text("a.I")
-        .id(getAppId())
-        .font(Font.system(size: 14, weight: .medium))
-        .foregroundStyle(Color(hex: "#a8a8a8"))
-//        .background(
-//          Circle()
-//            .fill(Color(hex: "#A8A8A8"))
-//            .frame(width: 20, height: 20)
-//        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+      // Text("a.I")
+      //   .id(getAppId())
+      //   .font(Font.system(size: 14, weight: .medium))
+      //   .foregroundStyle(Color(hex: "#a8a8a8"))
+      //   .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
 
       Spacer()
     }

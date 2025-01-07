@@ -1,16 +1,14 @@
 //
-//  ContentView.swift
+//  AppSwitcherMainView.swift
 //  Dezka
-//
-//  Created by Dragos Tudorache on 30.12.2024.
 //
 
 import SwiftUI
 
-struct ContentView: View {
-  @State private var searchTerm = ""
+struct AppSwitcherContentView: View {
+  @ObservedObject var appSwitcherContentViewModel: AppSwitcherContentViewModel
 
-  // @EnvironmentObject var appNavigator: AppSwitcherNavigation & AppSwitcherUI
+  @State private var searchTerm = ""
 
   var body: some View {
     VStack(
@@ -38,9 +36,13 @@ struct ContentView: View {
 
         Spacer()
 
-//        AppListView(searchTerm: $searchTerm)
+        AppListView(
+          filterQuery: appSwitcherContentViewModel.filterQuery,
+          appsList: appSwitcherContentViewModel.appsList,
+          navigationAtIndex: appSwitcherContentViewModel.navigationAtIndex
+        )
 
-        // AppFooterView()
+        AppFooterView()
       }
     )
     .padding(
@@ -60,12 +62,4 @@ struct ContentView: View {
       searchTerm = ""
     }
   }
-}
-
-#Preview {
-  //  @Previewable @StateObject var appDelegate = AppDelegate()
-  //
-  //  ContentView()
-  //    .environmentObject(appDelegate)
-  //    .frame(width: 600, height: 400)
 }

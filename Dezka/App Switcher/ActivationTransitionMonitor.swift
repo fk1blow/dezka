@@ -1,17 +1,14 @@
+//
+//  ActivationTransitionMonitor.swift
+//  Dezka
+//
+
 import Cocoa
 
-protocol ActivationTransitionMonitorDelegate: AnyObject {
-  func didActivateAppOnSameSpace(app: NSRunningApplication)
-  func willActivateAppOnDifferentSpace(app: NSRunningApplication)
-  func didFinishSpaceTransitionFor(app: NSRunningApplication)
-}
-
-extension ActivationTransitionMonitorDelegate {
-  func willActivateAppOnDifferentSpace(app: NSRunningApplication) {}
-}
-
 class ActivationTransitionMonitor: NSObject {
-  weak var delegate: ActivationTransitionMonitorDelegate?
+  weak var delegate: AppSwitcherMonitoringDelegate?
+
+  var isMonitoringEnabled: Bool = false
 
   private var isAnimating = false
   private var activeSpaceChangeObserver: Any?
@@ -24,9 +21,6 @@ class ActivationTransitionMonitor: NSObject {
   private let requiredStableFrames = 3
   private var pendingSpaceChange = false
   private var lastActivatedApp: NSRunningApplication?
-
-  var isDebugEnabled = false
-  var isMonitoringEnabled: Bool = false
 
   override init() {
     super.init()
@@ -48,8 +42,9 @@ class ActivationTransitionMonitor: NSObject {
       object: nil,
       queue: .main
     ) { [weak self] notification in
-      guard (self?.isMonitoringEnabled) != nil else { return }
-      // Execute immediately on main queue
+      guard let strongSelf = self, strongSelf.isMonitoringEnabled else {
+        return
+      }
       self?.handleApplicationActivated(notification)
     }
 
@@ -59,7 +54,9 @@ class ActivationTransitionMonitor: NSObject {
       object: nil,
       queue: .main
     ) { [weak self] _ in
-      guard (self?.isMonitoringEnabled) != nil else { return }
+      guard let strongSelf = self, strongSelf.isMonitoringEnabled else {
+        return
+      }
       self?.handleSpaceChange()
     }
   }
@@ -73,14 +70,14 @@ class ActivationTransitionMonitor: NSObject {
 
     // Immediately check if app is on current space
     if isAppVisibleOnCurrentSpace(app) {
-      debugLog("App activated on current space: \(app.localizedName ?? "Unknown")")
+      Debug.log("App activated on current space: \(app.localizedName ?? "Unknown")")
       // delegate?.appSwitcher(self, didActivateAppOnSameSpace: app)
       delegate?.didActivateAppOnSameSpace(app: app)
-      return // Return immediately for same-space activation
+      return  // Return immediately for same-space activation
     }
 
     // Different space case
-    debugLog("App activated from different space: \(app.localizedName ?? "Unknown")")
+    Debug.log("App activated from different space: \(app.localizedName ?? "Unknown")")
     lastActivatedApp = app
     pendingSpaceChange = true
     delegate?.willActivateAppOnDifferentSpace(app: app)
@@ -89,7 +86,7 @@ class ActivationTransitionMonitor: NSObject {
   private func isAppVisibleOnCurrentSpace(_ app: NSRunningApplication) -> Bool {
     guard
       let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
-      as? [[String: Any]]
+        as? [[String: Any]]
     else {
       return false
     }
@@ -108,7 +105,7 @@ class ActivationTransitionMonitor: NSObject {
 
     isAnimating = true
     pollStartTime = ProcessInfo.processInfo.systemUptime
-    debugLog("Space change detected, starting polling")
+    Debug.log("Space change detected, starting polling")
 
     startPolling(for: app)
   }
@@ -141,12 +138,12 @@ class ActivationTransitionMonitor: NSObject {
     }
 
     guard let app = lastActivatedApp,
-          let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
-          as? [[String: Any]],
-          let firstWindow = windowList.first(where: {
-            ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier
-          }),
-          let frameBeforeTransition = frameBeforeTransition
+      let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
+        as? [[String: Any]],
+      let firstWindow = windowList.first(where: {
+        ($0[kCGWindowOwnerPID as String] as? pid_t) == app.processIdentifier
+      }),
+      let frameBeforeTransition = frameBeforeTransition
     else {
       stopPolling()
       return
@@ -177,12 +174,6 @@ class ActivationTransitionMonitor: NSObject {
     unchangedFrameCount = 0
     pendingSpaceChange = false
     lastActivatedApp = nil
-  }
-
-  private func debugLog(_ message: String) {
-    if isDebugEnabled {
-      print("[AppSwitcher] \(message)")
-    }
   }
 
   deinit {

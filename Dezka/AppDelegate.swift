@@ -2,22 +2,17 @@
 //  AppDelegate.swift
 //  Dezka
 //
-//  Created by Dragos Tudorache on 30.12.2024.
-//
 
-import Cocoa
-import KeyboardShortcuts
-import SwiftUI
+import AppKit
 
-class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, ObservableObject, AppSwitcherDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusItem: NSStatusItem!
   private var window: NSWindow?
   private let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-  private let appSwitcher = AppSwitcher()
+  private let mainCoordinator = MainCoordinator()
 
   override init() {
     super.init()
-    appSwitcher.delegate = self
   }
 
   func applicationDidFinishLaunching(_: Notification) {
@@ -25,90 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, Observable
       createMenu()
     }
 
-    KeyboardShortcuts.onKeyDown(for: .dezkaHotkey) { [self] in
-      print("Dezka onKeyDown")
-
-      appSwitcher.switchToNextApp()
-
-      // NSApp.activate(ignoringOtherApps: true)
-
-      // createWindow()
-    }
-  }
-
-  func appSwitcherDidFinish() {
-    // NSApp.deactivate()
-    // KeyboardShortcuts.enable(.dezkaHotkey)
-    // appSwitcher.disable()
-    print("_____________________________")
-  }
-
-  func windowDidResignKey(_: Notification) {
-    print("windowDidResignKey")
-    hideApp()
-    KeyboardShortcuts.enable(.dezkaHotkey)
-    // appSwitcher.disable()
-//    switcherActivationMonitor.stopMonitor()
-    // This should first check if the switcher is still active
-    // b/c it might trigger before the `switcherActivationDidEnd`
-    // appListManager.navigateToFirst()
-  }
-
-//   func switcherActivationDidEnd() {
-//     print("switcherActivationDidEnd")
-//     hideApp()
-//     // NotificationCenter.default.post(name: .appListItemSelect, object: nil)
-//     // appSwitcher.disable()
-  // //    appListManager.switchFocusToSelected()
-//     // KeyboardShortcuts.enable(.dezkaHotkey)
-//   }
-
-//  func switcherNavigationDidTrigger(to direction: SwitcherNavigationDirection) {
-//    switch direction {
-//    case .next:
-//      appListManager.navigateTo(direction: .next)
-//    // NotificationCenter.default.post(name: .appListNavigateDown, object: nil)
-//    case .previous:
-//      appListManager.navigateTo(direction: .previous)
-//      // NotificationCenter.default.post(name: .appListNavigateUp, object: nil)
-//    }
-//  }
-
-  @objc private func handleMenuQuitApp() {
-    NSApplication.shared.terminate(self)
-  }
-
-  private func hideApp() {
-    window?.close()
-    window = nil
-    // This causes all the windows(belonging to this app) to be hidden
-    // NSApp.hide(nil)
-  }
-
-  // split this into : activateWindow and activateApp
-  private func createWindow() {
-    if window == nil {
-      // let contentView = ContentView().environmentObject(self)
-//      let contentView = ContentView().environmentObject(appListManager)
-      let contentView = ContentView()
-
-      window = NSWindow(
-        contentRect: NSRect(x: 0, y: 0, width: 500, height: 450),
-        styleMask: [.titled, .fullSizeContentView],
-        backing: .buffered, defer: false
-      )
-      window?.delegate = self
-      window?.isReleasedWhenClosed = false
-      window?.contentView = NSHostingView(rootView: contentView.frame(width: 500, height: 450))
-      window?.titleVisibility = .hidden
-      window?.titlebarAppearsTransparent = true
-      window?.isMovable = false
-      window?.center()
-    }
-
-    NSApp.activate(ignoringOtherApps: true)
-    window?.makeKeyAndOrderFront(nil)
-    window?.orderFrontRegardless()
+    mainCoordinator.handleHotkey()
   }
 
   private func createMenu() {
@@ -118,10 +30,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, Observable
         systemSymbolName: "circle.circle", accessibilityDescription: "Menu Icon"
       )
     }
+    // if let button = statusItem.button {
+    //   button.image = NSImage(named: "AppIcon")  // Replace "YourIconName" with the name of your asset
+    //   button.image?.size = NSSize(width: 16, height: 16)  // Adjust size if needed
+    // }
 
     let menu = NSMenu()
     menu.addItem(
       NSMenuItem(title: "Quit", action: #selector(handleMenuQuitApp), keyEquivalent: "q"))
     statusItem.menu = menu
+  }
+
+  @objc private func handleMenuQuitApp() {
+    NSApplication.shared.terminate(self)
   }
 }

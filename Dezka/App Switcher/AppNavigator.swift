@@ -3,63 +3,15 @@
 //  Dezka
 //
 
-import Cocoa
-import Combine
 import SwiftUI
 
-class AppNavigator {
-  private let appListManager = AppListManager()
+class AppNavigator: ObservableObject {
+  @Published private(set) var appListFilterQuery: String = ""
+  @Published private(set) var appsList: [NSRunningApplication] = []
+  @Published private(set) var navigationAtIndex: Int = 0
 
-  private var navigationAtIndex: Int = 0
-
-  func navigateToNext() {
-    guard navigationAtIndex < appListManager.appList.count - 1 else { return }
-    navigationAtIndex += 1
-
-    let wouldBeApp = appListManager.appList[navigationAtIndex]
-    // print("wouldBeApp: \(wouldBeApp.localizedName ?? "Unknown App")")
-  }
-
-  func navigaToPrevious() {
-    guard navigationAtIndex > 0 else { return }
-    navigationAtIndex -= 1
-  }
-
-  func resetNavigation() {
-    resetNavigationStart()
-  }
-
-  func activateSelectedApp() {
-    guard appListManager.appList.indices.contains(navigationAtIndex) else { return }
-    let targetApp = appListManager.appList[navigationAtIndex]
-
-    targetApp.activate(options: [.activateIgnoringOtherApps])
-
-    resetNavigationStart()
-  }
-
-  private func resetNavigationStart() {
-    navigationAtIndex = 0
-  }
-
-  private func appCanBeSelected(app: NSRunningApplication) -> Bool {
-    let frontmostApp = NSWorkspace.shared.frontmostApplication
-
-    if frontmostApp?.processIdentifier == app.processIdentifier {
-      return false
-    }
-
-    return true
-  }
-}
-
-private class AppListManager: NSObject {
-  var appList: [NSRunningApplication] = []
-
-  override init() {
-    super.init()
-
-    appList = getAppsWithWindows()
+  init() {
+    appsList = getAppsWithWindows()
 
     NSWorkspace.shared.notificationCenter.addObserver(
       forName: NSWorkspace.didLaunchApplicationNotification,
@@ -83,12 +35,38 @@ private class AppListManager: NSObject {
     )
   }
 
+  func navigateToNext() {
+    guard navigationAtIndex < appsList.count - 1 else { return }
+    navigationAtIndex += 1
+  }
+
+  func navigateToPrevious() {
+    guard navigationAtIndex > 0 else { return }
+    navigationAtIndex -= 1
+  }
+
+  func resetNavigation() {
+    resetNavigationStart()
+  }
+
+  func activateSelectedApp() {
+    guard appsList.indices.contains(navigationAtIndex) else { return }
+    let targetApp = appsList[navigationAtIndex]
+    targetApp.activate(options: [.activateIgnoringOtherApps])
+    // Debug.log("Activating app: \(targetApp.localizedName ?? "unknown")")
+    resetNavigationStart()
+  }
+
+  private func resetNavigationStart() {
+    navigationAtIndex = 0
+  }
+
   private func handleApplicationLaunched(_ notification: Notification) {
     if let userInfo = notification.userInfo,
       let launchedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard launchedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
-      appList.append(launchedApp)
+      appsList.append(launchedApp)
     }
   }
 
@@ -97,7 +75,7 @@ private class AppListManager: NSObject {
       let terminatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard terminatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
-      appList.removeAll { $0.processIdentifier == terminatedApp.processIdentifier }
+      appsList.removeAll { $0.processIdentifier == terminatedApp.processIdentifier }
     }
   }
 
@@ -107,9 +85,11 @@ private class AppListManager: NSObject {
     {
       guard activatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
 
-      var updatedAppList = appList.filter { $0.processIdentifier != activatedApp.processIdentifier }
+      var updatedAppList = appsList.filter {
+        $0.processIdentifier != activatedApp.processIdentifier
+      }
       updatedAppList.insert(activatedApp, at: 0)
-      appList = updatedAppList
+      appsList = updatedAppList
     }
   }
 
