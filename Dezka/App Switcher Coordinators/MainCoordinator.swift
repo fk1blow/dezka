@@ -26,6 +26,8 @@ class MainCoordinator {
       stopDelayedTimer()
     }
     KeyboardShortcuts.onKeyDown(for: .dezkaHotkeyNext) { [self] in
+      print("--------------- hotkey")
+
       self.navigationTraversal = .next
       createNavigationDelayTimer()
 
@@ -38,6 +40,8 @@ class MainCoordinator {
       stopDelayedTimer()
     }
     KeyboardShortcuts.onKeyDown(for: .dezkaHotkeyPrevious) { [self] in
+      print("--------------- hotkey")
+
       self.navigationTraversal = .previous
       createNavigationDelayTimer()
 
