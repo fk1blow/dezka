@@ -1,5 +1,5 @@
 //
-//  AppSwitcherMainView.swift
+//  AppSwitcherContentView.swift
 //  Dezka
 //
 
@@ -45,6 +45,10 @@ struct AppSwitcherContentView: View {
         AppFooterView()
       }
     )
+    // .background(
+    //   RoundedRectangle(cornerRadius: 8)
+    //     .fill(Color(hex: "#0D0D0D"))
+    // )
     .padding(
       ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         ? EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
