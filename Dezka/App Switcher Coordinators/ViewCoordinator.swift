@@ -66,6 +66,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
       window = NSWindow(
         contentRect: NSRect(x: 0, y: 0, width: 500, height: 450),
         styleMask: [.titled, .fullSizeContentView],
+        // styleMask: [.utilityWindow],
         backing: .buffered, defer: false
       )
       // window?.alphaValue = 0
@@ -76,6 +77,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
       window?.titleVisibility = .hidden
       window?.titlebarAppearsTransparent = true
       window?.isMovable = false
+      // window?.backgroundColor = NSColor.clear
       window?.center()
     }
 
@@ -97,7 +99,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
 
   private func monitorOutsideClicks() {
     globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
-      .leftMouseDown
+      .leftMouseDown,
     ]) { _ in
       guard let window = self.window else { return }
 
