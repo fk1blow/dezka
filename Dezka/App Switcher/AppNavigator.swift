@@ -3,6 +3,8 @@
 //  Dezka
 //
 
+import ApplicationServices
+import Cocoa
 import SwiftUI
 
 enum AppNavigatorTraversal {
@@ -61,14 +63,31 @@ class AppNavigator: ObservableObject {
   func activateSelectedApp() {
     guard state.visibleApps.indices.contains(state.navigationIndex) else { return }
     let targetApp = state.visibleApps[state.navigationIndex]
-    targetApp.activate(options: [.activateIgnoringOtherApps])
-    Debug.log("Activating app: \(targetApp.localizedName ?? "unknown")")
+    // targetApp.activate(options: [.activateIgnoringOtherApps])
+    try? tryToActivateAppWindow(app: targetApp)
     resetNavigation()
+  }
+
+  func tryToActivateAppWindow(app: NSRunningApplication) throws {
+    Debug.log("Activating app: \(app.localizedName ?? "unknown")")
+    if let bundleUrl = app.bundleURL {
+      let config = NSWorkspace.OpenConfiguration()
+      config.activates = true // This tells it to bring the app to the foreground
+
+      NSWorkspace.shared.openApplication(
+        at: bundleUrl,
+        configuration: config
+      ) { _, error in
+        if let error = error {
+          Debug.log("Failed to open application: \(error)")
+        }
+      }
+    }
   }
 
   private func handleApplicationLaunched(_ notification: Notification) {
     if let userInfo = notification.userInfo,
-      let launchedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+       let launchedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard launchedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
       state.visibleApps.append(launchedApp)
@@ -77,7 +96,7 @@ class AppNavigator: ObservableObject {
 
   private func handleApplicationTerminated(_ notification: Notification) {
     if let userInfo = notification.userInfo,
-      let terminatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+       let terminatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard terminatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
       state.visibleApps.removeAll { $0.processIdentifier == terminatedApp.processIdentifier }
@@ -86,7 +105,7 @@ class AppNavigator: ObservableObject {
 
   private func handleApplicationActivated(_ notification: Notification) {
     if let userInfo = notification.userInfo,
-      let activatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+       let activatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard activatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
 
@@ -103,13 +122,13 @@ class AppNavigator: ObservableObject {
 
     let appsWithWindows =
       runningApps
-      .filter { $0.bundleIdentifier != "ro.dragostudorache.Dezka" }
-      .filter { app in
-        guard !app.isHidden, app.activationPolicy == .regular else {
-          return false  // Exclude hidden/system apps
+        .filter { $0.bundleIdentifier != "ro.dragostudorache.Dezka" }
+        .filter { app in
+          guard !app.isHidden, app.activationPolicy == .regular else {
+            return false // Exclude hidden/system apps
+          }
+          return true
         }
-        return true
-      }
 
     return AppNavigatorState(
       appSearchQuery: "",
