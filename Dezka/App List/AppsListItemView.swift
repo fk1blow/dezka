@@ -32,8 +32,9 @@ struct AppsListItemView: View {
 
       Spacer()
     }
-    .frame(maxWidth: .infinity)
-    .padding(EdgeInsets(top: 9, leading: 6, bottom: 9, trailing: 6))
+    .frame(maxWidth: .infinity, idealHeight: 40)
+    // .padding(EdgeInsets(top: 9, leading: 6, bottom: 9, trailing: 6))
+    .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 6))
     .onHover(perform: { hovering in self.isHovering = hovering })
     .modifier(
       MouseClickActions(
@@ -53,7 +54,7 @@ struct AppsListItemView: View {
   }
 
   private func itemSelectedStyle() -> Color {
-    isSelected ? Color(hex: "#262626") : isHovering ? Color(hex: "#191919") : Color.clear
+    isSelected ? Color(hex: "#2A2A2A") : isHovering ? Color(hex: "#303030") : Color.clear
   }
 
   private func getAppName() -> String {
