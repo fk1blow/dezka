@@ -77,7 +77,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
       window?.titleVisibility = .hidden
       window?.titlebarAppearsTransparent = true
       window?.isMovable = false
-      // window?.backgroundColor = NSColor.clear
+      window?.backgroundColor = NSColor.clear
       window?.center()
     }
 
