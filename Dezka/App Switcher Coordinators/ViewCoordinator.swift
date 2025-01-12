@@ -11,20 +11,23 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   private var statusItem: NSStatusItem!
   private var window: NSWindow?
   private var appSwitcher: (AppSwitcherUI & AppSwitcherNavigation)!
-  private var activationCancellable: AnyCancellable? = nil
+  // private var activationCancellable: AnyCancellable? = nil
+  private var cancellables: Set<AnyCancellable> = []
   private var globalClickMonitor: Any?
+  private var appListCount: Int = 0
 
   init(appSwitcher: AppSwitcher) {
     super.init()
     self.appSwitcher = appSwitcher
-    self.monitorAppSwitcherStateChanges()
-    self.monitorOutsideClicks()
+    monitorSwitcherShouldHide()
+    monitorAppListCount()
+    monitorOutsideClicks()
   }
 
   func showSwitcherWindow() {
     stopTimer()
 
-    timer = Timer.scheduledTimer(withTimeInterval: 0.120, repeats: false) { _ in
+    timer = Timer.scheduledTimer(withTimeInterval: 0.150, repeats: false) { _ in
       self.createWindow()
     }
   }
@@ -35,10 +38,10 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   }
 
   // Although we're not calling `NSApp.activate(ignoringOtherApps: true)` when creating the window,
-  // if the app window ever gets focused then loses it, the `windowDidResignKey` will still be called
+  // if the app window ever gets focused(eg: mouse click) then loses it, the `windowDidResignKey`
+  // would still be called
   func windowDidResignKey(_: Notification) {
     hideSwitcherWindow()
-    self.appSwitcher.appSwitcherShouldClose()
   }
 
   private func stopTimer() {
@@ -56,7 +59,6 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
 
   private func createWindow() {
     if window == nil {
-      // let contentView = ContentView()
       let appSwitcherContentViewModel = AppSwitcherContentViewModel(
         appSwitcher: appSwitcher
       )
@@ -64,19 +66,23 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
         appSwitcherContentViewModel: appSwitcherContentViewModel
       )
 
+      print(getWindowSize().height)
+
       window = NSWindow(
-        contentRect: NSRect(x: 0, y: 0, width: 500, height: 450),
+        contentRect: NSRect(x: 0, y: 0, width: 500, height: getWindowSize().height),
         styleMask: [.titled, .fullSizeContentView],
+        // styleMask: [.utilityWindow],
         backing: .buffered, defer: false
       )
       // window?.alphaValue = 0
       window?.delegate = self
       window?.isReleasedWhenClosed = false
       window?.contentView = NSHostingView(
-        rootView: appSwitcherContentView.frame(width: 500, height: 450))
+        rootView: appSwitcherContentView.frame(width: 500, height: getWindowSize().height))
       window?.titleVisibility = .hidden
       window?.titlebarAppearsTransparent = true
       window?.isMovable = false
+      window?.backgroundColor = NSColor.clear
       window?.center()
     }
 
@@ -96,10 +102,26 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
     // }
   }
 
+  private func monitorAppListCount() {
+    // appSwitcher.navigationState.reduce(0) { $0 + $1.visibleApps.count }
+    appSwitcher.navigationState.map { $0.visibleApps.count }
+      .sink { count in
+        self.appListCount = count
+      }
+      .store(in: &cancellables)
+  }
+
+  private func getWindowSize() -> CGSize {
+    let listElementHeight = 40
+    // TODO: - This is a hacky way to calculate the height of the window
+    let appListViewPadding = 10
+    return CGSize(width: 500, height: (listElementHeight * appListCount) - appListViewPadding)
+  }
+
   private func monitorOutsideClicks() {
     globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
-      .leftMouseDown
-    ]) { event in
+      .leftMouseDown,
+    ]) { _ in
       guard let window = self.window else { return }
 
       let mouseLocation = NSEvent.mouseLocation
@@ -114,12 +136,13 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
     }
   }
 
-  private func monitorAppSwitcherStateChanges() {
-    self.activationCancellable = appSwitcher.cycleStateMachine.$state
+  private func monitorSwitcherShouldHide() {
+    appSwitcher.cycleState.$state
       .sink { newState in
         if newState != .navigatingThroughApps {
           self.hideSwitcherWindow()
         }
       }
+      .store(in: &cancellables)
   }
 }

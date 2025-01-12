@@ -32,9 +32,19 @@ struct AppsListItemView: View {
 
       Spacer()
     }
-    .frame(maxWidth: .infinity)
-    .padding(EdgeInsets(top: 9, leading: 6, bottom: 9, trailing: 6))
+    .frame(maxWidth: .infinity, idealHeight: 40)
+    // .padding(EdgeInsets(top: 9, leading: 6, bottom: 9, trailing: 6))
+    .padding(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 6))
     .onHover(perform: { hovering in self.isHovering = hovering })
+    .modifier(
+      MouseClickActions(
+        onMouseDown: {
+          // Do something on press...
+          print("clicked???")
+        },
+        onMouseUp: {}
+      )
+    )
     .background(itemSelectedStyle())
     .cornerRadius(8)
   }
@@ -44,7 +54,7 @@ struct AppsListItemView: View {
   }
 
   private func itemSelectedStyle() -> Color {
-    isSelected ? Color(hex: "#393939") : isHovering ? Color(hex: "#2B2B2B") : Color.clear
+    isSelected ? Color(hex: "#2A2A2A") : isHovering ? Color(hex: "#303030") : Color.clear
   }
 
   private func getAppName() -> String {
@@ -53,5 +63,22 @@ struct AppsListItemView: View {
 
   private func getAppId() -> String {
     app.bundleIdentifier ?? ""
+  }
+}
+
+struct MouseClickActions: ViewModifier {
+  var onMouseDown: () -> Void
+  var onMouseUp: () -> Void
+  func body(content: Content) -> some View {
+    content
+      .simultaneousGesture(
+        DragGesture(minimumDistance: 0)
+          .onChanged { _ in
+            onMouseDown()
+          }
+          .onEnded { _ in
+            onMouseUp()
+          }
+      )
   }
 }

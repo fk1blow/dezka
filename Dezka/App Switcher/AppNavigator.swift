@@ -3,15 +3,26 @@
 //  Dezka
 //
 
+import ApplicationServices
+import Cocoa
 import SwiftUI
 
+enum AppNavigatorTraversal {
+  case next
+  case previous
+}
+
+struct AppNavigatorState {
+  var appSearchQuery: String = ""
+  var visibleApps: [NSRunningApplication] = []
+  var navigationIndex: Int = 0
+}
+
 class AppNavigator: ObservableObject {
-  @Published private(set) var appListFilterQuery: String = ""
-  @Published private(set) var appsList: [NSRunningApplication] = []
-  @Published private(set) var navigationAtIndex: Int = 0
+  @Published private(set) var state = AppNavigatorState()
 
   init() {
-    appsList = getAppsWithWindows()
+    state = getInitialState()
 
     NSWorkspace.shared.notificationCenter.addObserver(
       forName: NSWorkspace.didLaunchApplicationNotification,
@@ -36,76 +47,93 @@ class AppNavigator: ObservableObject {
   }
 
   func navigateToNext() {
-    guard navigationAtIndex < appsList.count - 1 else { return }
-    navigationAtIndex += 1
+    guard state.navigationIndex < state.visibleApps.count - 1 else { return }
+    state.navigationIndex += 1
   }
 
   func navigateToPrevious() {
-    guard navigationAtIndex > 0 else { return }
-    navigationAtIndex -= 1
+    guard state.navigationIndex > 0 else { return }
+    state.navigationIndex -= 1
   }
 
   func resetNavigation() {
-    resetNavigationStart()
+    state.navigationIndex = 0
   }
 
   func activateSelectedApp() {
-    guard appsList.indices.contains(navigationAtIndex) else { return }
-    let targetApp = appsList[navigationAtIndex]
-    targetApp.activate(options: [.activateIgnoringOtherApps])
-    // Debug.log("Activating app: \(targetApp.localizedName ?? "unknown")")
-    resetNavigationStart()
+    guard state.visibleApps.indices.contains(state.navigationIndex) else { return }
+    let targetApp = state.visibleApps[state.navigationIndex]
+    // targetApp.activate(options: [.activateIgnoringOtherApps])
+    try? tryToActivateAppWindow(app: targetApp)
+    resetNavigation()
   }
 
-  private func resetNavigationStart() {
-    navigationAtIndex = 0
+  func tryToActivateAppWindow(app: NSRunningApplication) throws {
+    Debug.log("Activating app: \(app.localizedName ?? "unknown")")
+    if let bundleUrl = app.bundleURL {
+      let config = NSWorkspace.OpenConfiguration()
+      config.activates = true // This tells it to bring the app to the foreground
+
+      NSWorkspace.shared.openApplication(
+        at: bundleUrl,
+        configuration: config
+      ) { _, error in
+        if let error = error {
+          Debug.log("Failed to open application: \(error)")
+        }
+      }
+    }
   }
 
   private func handleApplicationLaunched(_ notification: Notification) {
     if let userInfo = notification.userInfo,
-      let launchedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+       let launchedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard launchedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
-      appsList.append(launchedApp)
+      state.visibleApps.append(launchedApp)
     }
   }
 
   private func handleApplicationTerminated(_ notification: Notification) {
     if let userInfo = notification.userInfo,
-      let terminatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+       let terminatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard terminatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
-      appsList.removeAll { $0.processIdentifier == terminatedApp.processIdentifier }
+      state.visibleApps.removeAll { $0.processIdentifier == terminatedApp.processIdentifier }
     }
   }
 
   private func handleApplicationActivated(_ notification: Notification) {
     if let userInfo = notification.userInfo,
-      let activatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+       let activatedApp = userInfo[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
     {
       guard activatedApp.bundleIdentifier != "ro.dragostudorache.Dezka" else { return }
 
-      var updatedAppList = appsList.filter {
+      var updatedAppList = state.visibleApps.filter {
         $0.processIdentifier != activatedApp.processIdentifier
       }
       updatedAppList.insert(activatedApp, at: 0)
-      appsList = updatedAppList
+      state.visibleApps = updatedAppList
     }
   }
 
-  private func getAppsWithWindows() -> [NSRunningApplication] {
+  private func getInitialState() -> AppNavigatorState {
     let runningApps = NSWorkspace.shared.runningApplications
 
-    return
+    let appsWithWindows =
       runningApps
-      .filter { $0.bundleIdentifier != "ro.dragostudorache.Dezka" }
-      .filter { app in
-        guard !app.isHidden, app.activationPolicy == .regular else {
-          return false  // Exclude hidden/system apps
+        .filter { $0.bundleIdentifier != "ro.dragostudorache.Dezka" }
+        .filter { app in
+          guard !app.isHidden, app.activationPolicy == .regular else {
+            return false // Exclude hidden/system apps
+          }
+          return true
         }
-        // This currently fails on runtime, so disregar it for now
-        // return hasWindows(runningApp: app)
-        return true
-      }
+
+    return AppNavigatorState(
+      appSearchQuery: "",
+      visibleApps: appsWithWindows,
+      navigationIndex: 0
+    )
   }
 }

@@ -85,7 +85,7 @@ class ActivationTransitionMonitor: NSObject {
 
   private func isAppVisibleOnCurrentSpace(_ app: NSRunningApplication) -> Bool {
     guard
-      let windowList = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID)
+      let windowList = CGWindowListCopyWindowInfo([.optionAll], kCGNullWindowID)
         as? [[String: Any]]
     else {
       return false
