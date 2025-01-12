@@ -11,13 +11,16 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
   private var statusItem: NSStatusItem!
   private var window: NSWindow?
   private var appSwitcher: (AppSwitcherUI & AppSwitcherNavigation)!
-  private var activationCancellable: AnyCancellable? = nil
+  // private var activationCancellable: AnyCancellable? = nil
+  private var cancellables: Set<AnyCancellable> = []
   private var globalClickMonitor: Any?
+  private var appListCount: Int = 0
 
   init(appSwitcher: AppSwitcher) {
     super.init()
     self.appSwitcher = appSwitcher
-    monitorAppSwitcherStateChanges()
+    monitorSwitcherShouldHide()
+    monitorAppListCount()
     monitorOutsideClicks()
   }
 
@@ -63,8 +66,10 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
         appSwitcherContentViewModel: appSwitcherContentViewModel
       )
 
+      print(getWindowSize().height)
+
       window = NSWindow(
-        contentRect: NSRect(x: 0, y: 0, width: 500, height: 450),
+        contentRect: NSRect(x: 0, y: 0, width: 500, height: getWindowSize().height),
         styleMask: [.titled, .fullSizeContentView],
         // styleMask: [.utilityWindow],
         backing: .buffered, defer: false
@@ -73,7 +78,7 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
       window?.delegate = self
       window?.isReleasedWhenClosed = false
       window?.contentView = NSHostingView(
-        rootView: appSwitcherContentView.frame(width: 500, height: 450))
+        rootView: appSwitcherContentView.frame(width: 500, height: getWindowSize().height))
       window?.titleVisibility = .hidden
       window?.titlebarAppearsTransparent = true
       window?.isMovable = false
@@ -97,6 +102,22 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
     // }
   }
 
+  private func monitorAppListCount() {
+    // appSwitcher.navigationState.reduce(0) { $0 + $1.visibleApps.count }
+    appSwitcher.navigationState.map { $0.visibleApps.count }
+      .sink { count in
+        self.appListCount = count
+      }
+      .store(in: &cancellables)
+  }
+
+  private func getWindowSize() -> CGSize {
+    let listElementHeight = 40
+    // TODO: - This is a hacky way to calculate the height of the window
+    let appListViewPadding = 10
+    return CGSize(width: 500, height: (listElementHeight * appListCount) - appListViewPadding)
+  }
+
   private func monitorOutsideClicks() {
     globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [
       .leftMouseDown,
@@ -115,12 +136,13 @@ class ViewCoordinator: NSObject, NSWindowDelegate {
     }
   }
 
-  private func monitorAppSwitcherStateChanges() {
-    activationCancellable = appSwitcher.cycleState.$state
+  private func monitorSwitcherShouldHide() {
+    appSwitcher.cycleState.$state
       .sink { newState in
         if newState != .navigatingThroughApps {
           self.hideSwitcherWindow()
         }
       }
+      .store(in: &cancellables)
   }
 }
