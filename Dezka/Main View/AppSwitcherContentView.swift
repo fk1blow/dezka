@@ -42,19 +42,17 @@ struct AppSwitcherContentView: View {
           navigationAtIndex: appSwitcherContentViewModel.navigationIndex
         )
 
-        AppFooterView()
+        // AppFooterView()
       }
     )
-    // .background(
-    //   RoundedRectangle(cornerRadius: 8)
-    //     .fill(Color(hex: "#0D0D0D"))
-    // )
+    // alternative background
+    // .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: "#0D0D0D")))
     .padding(
       ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         ? EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
         : EdgeInsets(top: -30, leading: 0, bottom: 0, trailing: 0)
     )
-    .background(Color(hex: "#232323"))
+    .background(Color(hex: "#0D0D0D"))
     .onReceive(NotificationCenter.default.publisher(for: .applicationWillHide)) { _ in
       searchTerm = ""
     }
