@@ -35,7 +35,6 @@ struct AppsListItemView: View {
     .frame(maxWidth: .infinity)
     .padding(EdgeInsets(top: 9, leading: 6, bottom: 9, trailing: 6))
     .onHover(perform: { hovering in self.isHovering = hovering })
-
     .modifier(
       MouseClickActions(
         onMouseDown: {
@@ -54,7 +53,7 @@ struct AppsListItemView: View {
   }
 
   private func itemSelectedStyle() -> Color {
-    isSelected ? Color(hex: "#393939") : isHovering ? Color(hex: "#2B2B2B") : Color.clear
+    isSelected ? Color(hex: "#262626") : isHovering ? Color(hex: "#191919") : Color.clear
   }
 
   private func getAppName() -> String {
@@ -73,12 +72,12 @@ struct MouseClickActions: ViewModifier {
     content
       .simultaneousGesture(
         DragGesture(minimumDistance: 0)
-          .onChanged({ _ in
+          .onChanged { _ in
             onMouseDown()
-          })
-          .onEnded({ _ in
+          }
+          .onEnded { _ in
             onMouseUp()
-          })
+          }
       )
   }
 }
